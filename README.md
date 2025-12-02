@@ -1,19 +1,17 @@
-<!-- 
-inspirar-se no seguinte readme
-# 🌾 CanaData - Sistema de Monitoramento Climático para Cana-de-Açúcar
+# 📄 DocuMind - Sistema OCR com Análise Inteligente via LLM
 
 <div align="center">
 
-![CanaData Banner](https://img.shields.io/badge/CanaData-Sistema%20Clim%C3%A1tico-2D5F2E?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTcgMjBoMTAiLz48cGF0aCBkPSJNMTAgMjBjNS41LTIuNS43LTE1IDctMTV6Ii8+PHBhdGggZD0iTTE3LjUgNUMxNiAxMiAxMiAxNyA3IDIwYy0xLjUtMS41LTQtNC00LTQiLz48L3N2Zz4=)
+![DocuMind Banner](https://img.shields.io/badge/DocuMind-OCR%20%2B%20AI-6366F1?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTE0IDJINmEyIDIgMCAwIDAtMiAydjE2YTIgMiAwIDAgMCAyIDJoMTJhMiAyIDAgMCAwIDItMlY4eiIvPjxwb2x5bGluZSBwb2ludHM9IjE0IDIgMTQgOCAyMCA4Ii8+PGxpbmUgeDE9IjE2IiB5MT0iMTMiIHgyPSI4IiB5Mj0iMTMiLz48bGluZSB4MT0iMTYiIHkxPSIxNyIgeDI9IjgiIHkyPSIxNyIvPjxwb2x5bGluZSBwb2ludHM9IjEwIDkgOSA5IDggOSIvPjwvc3ZnPg==)
 
-**Plataforma web que democratiza o acesso a informações climáticas para produtores rurais de cana-de-açúcar**
+**Extraia texto de documentos e converse com eles usando Inteligência Artificial**
 
-[![Next.js](https://img.shields.io/badge/Next.js-15+-black?style=flat&logo=next.js)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-14+-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-10+-E0234E?style=flat&logo=nestjs)](https://nestjs.com/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker)](https://www.docker.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?style=flat&logo=mongodb)](https://www.mongodb.com/)
-[![AWS](https://img.shields.io/badge/AWS-EC2_+_S3-FF9900?style=flat&logo=amazonwebservices)](https://aws.amazon.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=flat&logo=postgresql)](https://www.postgresql.org/)
+[![AWS](https://img.shields.io/badge/AWS-S3_+_Bedrock-FF9900?style=flat&logo=amazonwebservices)](https://aws.amazon.com/)
 
 </div>
 
@@ -21,72 +19,33 @@ inspirar-se no seguinte readme
 
 ## 📋 Sobre o Projeto
 
-O **CanaData** é uma solução moderna que conecta **produtores de cana-de-açúcar** a dados climáticos inteligentes, resolvendo a carência de **digitalização e informação rápida** no setor agrícola brasileiro. 
+**DocuMind** é uma plataforma completa que combina **OCR (Reconhecimento Óptico de Caracteres)** com **LLM (Large Language Models)** para transformar documentos estáticos em fontes de conhecimento interativas.
 
-### 🎯 Problema
-Produtores rurais enfrentam dificuldades para acessar informações climáticas **contextualizadas** para suas culturas, impactando decisões críticas sobre irrigação, colheita e manejo.
+### 🎯 O Problema
+Profissionais e empresas lidam diariamente com documentos físicos ou digitalizados (faturas, contratos, relatórios) que exigem:
+- ⏱️ Tempo manual para extrair informações
+- 🔍 Dificuldade em localizar dados específicos
+- ❌ Impossibilidade de "conversar" com o conteúdo
 
-### ✨ Solução
-Plataforma web com:
-- 🌦️ **Dados climáticos em tempo real** via Open-Meteo API
-- 🎯 **Análise contextualizada** para cultivo de cana-de-açúcar (temperatura, umidade, precipitação, vento)
-- 🤝 **Fórum colaborativo** onde produtores compartilham insights e práticas
-- 📰 **Feed de notícias** do agronegócio brasileiro
-- 💹 **Cotação da cana-de-açúcar** (Campo vs Esteira) em tempo real
-- ⚡ **Sistema de resiliência** com rate limiting e retry inteligente
+### ✨ A Solução
+Plataforma web que permite:
+- 📤 **Upload de documentos** (PNG, JPG, PDF até 10MB)
+- 🔤 **Extração automática de texto** via Tesseract.js
+- 🤖 **Assistente IA** para perguntas sobre o documento (AWS Bedrock Claude Haiku)
+- 📥 **Download de relatório PDF** com texto extraído + histórico de conversas
+- 🔒 **Segurança de nível empresarial** (Argon2id, JWT, HTTP-only cookies)
 
 ### 🚀 Diferenciais Técnicos
 
-Além dos requisitos do desafio, foram implementados:
+Além dos requisitos do case, foram implementados:
 
-- **🗄️ Cache inteligente** (30min) reduz 70% das chamadas à API externa
-- **⚖️ Load balancing** com 2 réplicas FastAPI + Nginx (alta disponibilidade)
-- **📊 Cotação em tempo real** via web scraping 
-- **📰 Agregação de notícias** agrícolas contextualizadas (NewsAPI)
-- **☁️ Deploy em produção** (AWS EC2 + S3) com acesso público
-- **🛡️ Rate limiting** por endpoint para proteção contra abuso
-
----
-
-## 🌐 Acesso ao Sistema
-
-<div align="center">
-
-### 🚀 **Versão em Produção** (Deploy Completo)
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <h3>🖥️ Frontend</h3>
-      <a href="http://cana-data-frontend.s3-website-us-east-1.amazonaws.com/">
-        <img src="https://img.shields.io/badge/Acessar_Aplicação-2D5F2E?style=for-the-badge&logo=react&logoColor=white" alt="Frontend"/>
-      </a>
-      <br/><br/>
-      <sub>Interface web hospedada no AWS S3</sub>
-    </td>
-    <td align="center" width="50%">
-      <h3>🔧 Backend API</h3>
-      <a href="http://98.94.92.42:8000/docs">
-        <img src="https://img.shields.io/badge/Documentação_API-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="API Docs"/>
-      </a>
-      <br/><br/>
-      <sub>API REST com Swagger UI interativa</sub>
-    </td>
-  </tr>
-</table>
-
-**📍 URLs Diretas:**
-- **Aplicação Web**: http://cana-data-frontend.s3-website-us-east-1.amazonaws.com/
-- **API Backend**: http://98.94.92.42:8000
-- **API Docs (Swagger)**: http://98.94.92.42:8000/docs
-
----
-
-### 💻 **Executar Localmente** (Docker)
-
-Prefere testar em seu próprio ambiente? Siga o guia rápido abaixo ⬇️
-
-</div>
+- **🔐 Autenticação robusta**: JWT duplo (access + refresh tokens) com cookies HTTP-only
+- **🛡️ Rate limiting multinível**: Nginx (100 req/min) + Guards por usuário/rota
+- **📊 Limites de recursos**: 5 documentos e 10.000 tokens LLM por usuário
+- **⚖️ Load balancing**: Nginx com health checks automáticos
+- **☁️ Storage híbrido**: Suporte simultâneo para S3 (produção) e local (dev)
+- **📚 Documentação API**: Swagger UI interativa gerada automaticamente
+- **🐳 Deploy simplificado**: Configuração Docker Compose completa
 
 ---
 
@@ -94,71 +53,95 @@ Prefere testar em seu próprio ambiente? Siga o guia rápido abaixo ⬇️
 
 ### 📦 Pré-requisitos
 
-Certifique-se de ter instalado:
-
-- **Docker Engine** 20.10+ ([Instalar Docker](https://docs.docker.com/engine/install/))
-- **Docker Compose** V2+ (incluído no Docker Desktop)
-- **4GB de RAM** disponível
-- **Portas livres:** 3000, 8000, 8001, 8002, 27017
-
-Para verificar se está tudo pronto:
 ```bash
-docker --version        # Docker version 20.10.0+
-docker compose version  # Docker Compose version v2.0.0+
+# Ferramentas necessárias
+- Docker Engine 20.10+
+- Docker Compose V2+
+- 4GB RAM disponível
+- Portas livres: 3000, 4000, 5432, 80
+
+# Verificar instalação
+docker --version
+docker compose version
 ```
 
-### ⚙️ 1. Clone o Repositório
+### ⚙️ 1. Clone e Configure
 
 ```bash
-git clone https://github.com/thiagomes07/CanaData.git
-cd CanaData
-```
+# Clone o repositório
+git clone <seu-repositorio>
+cd documind
 
-### 🔑 2. Configure as Variáveis de Ambiente
-
-```bash
-# Copie o arquivo de exemplo
+# Configure variáveis de ambiente
 cp .env.example .env
-
-# o mesmo no diretório do backend
-cd backend
-cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
 ```
 
-> **💡 Nota**: O arquivo `.env.example` já contém valores pré-configurados para execução local. A única variável sensível (chave da NewsAPI) está incluída para facilitar os testes, mas **não compromete a segurança crítica** do projeto. Em produção, esta chave deve ser mantida privada.
+### 🔑 2. Variáveis de Ambiente Críticas
+
+Edite o arquivo `.env` na raiz:
+
+```bash
+# Segurança (⚠️ GERAR VALORES FORTES EM PRODUÇÃO)
+JWT_ACCESS_SECRET=seu-secret-forte-aqui-256bits
+JWT_REFRESH_SECRET=outro-secret-diferente-256bits
+PASSWORD_PEPPER=pepper-global-seguro-256bits
+
+# AWS S3 (obrigatório)
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=sua-chave-aws
+AWS_SECRET_ACCESS_KEY=seu-secret-aws
+S3_BUCKET=seu-bucket-s3
+S3_PREFIX=dev
+
+# AWS Bedrock (Claude Haiku)
+BEDROCK_MODEL_ID=anthropic.claude-3-haiku-20240307-v1:0
+```
+
+> **💡 Dica**: Para gerar secrets seguros:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+> ```
 
 ### 🐳 3. Execute com Docker Compose
 
 ```bash
-# Build e start (primeira execução)
+# Build e inicialização (primeira execução ~2-3 minutos)
 docker compose up --build
+
+# Em execuções subsequentes
+docker compose up -d
 ```
 
-**Aguarde ~30-60 segundos** para inicialização completa dos serviços:
-- ⏳ MongoDB inicializando...
-- ⏳ Backend FastAPI (2 réplicas) + Nginx...
-- ⏳ Frontend Next.js...
-- ✅ Health checks validados!
+**Aguarde a inicialização dos serviços:**
+- ✅ PostgreSQL (porta 5432)
+- ✅ Backend NestJS - 2 réplicas (portas 4000-4001)
+- ✅ Frontend Next.js (porta 3000)
+- ✅ Nginx Load Balancer (porta 80)
 
-### 🌐 4. Acesse a Aplicação Local
+### 🌐 4. Acesse a Aplicação
 
 | Serviço | URL | Descrição |
 |---------|-----|-----------|
-| **🖥️ Frontend** | [http://localhost:3000](http://localhost:3000) | Interface web principal |
-| **🔧 Backend API** | [http://localhost:8000](http://localhost:8000) | Gateway Nginx (load balanced) |
-| **📚 API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | Swagger UI interativa |
-| **📖 API ReDoc** | [http://localhost:8000/redoc](http://localhost:8000/redoc) | Documentação alternativa |
+| **🎨 Frontend** | [http://localhost:3000](http://localhost:3000) | Interface principal |
+| **🔧 API (Load Balanced)** | [http://localhost/api](http://localhost/api) | Gateway Nginx |
+| **📚 Documentação API** | [http://localhost/api/docs](http://localhost/api/docs) | Swagger UI |
+| **🏥 Health Check** | [http://localhost/api/health](http://localhost/api/health) | Status dos serviços |
 
-### 🛑 6. Parar o Projeto
+### 🛑 5. Gerenciar o Projeto
 
 ```bash
-# Pausa os containers (mantém dados)
+# Ver logs em tempo real
+docker compose logs -f
+
+# Parar containers (mantém dados)
 docker compose stop
 
-# Remove containers (mantém volumes/dados)
+# Remover containers (mantém volumes)
 docker compose down
 
-# Remove containers + volumes (⚠️ APAGA o banco de dados!)
+# Reset completo (⚠️ APAGA banco de dados)
 docker compose down -v
 ```
 
@@ -167,174 +150,276 @@ docker compose down -v
 ## 🏗️ Arquitetura
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Frontend (Next.js 15 - SSG)                            │
-│  • TypeScript + Tailwind CSS v4                        │
-│  • TanStack Query (cache inteligente 30min)            │
-│  • Resiliência a rate limiting com retry exponencial   │
-│  └─ http://localhost:3000                              │
-│                                                         │
-├─────────────────────────────────────────────────────────┤
-│  Nginx (Reverse Proxy + Load Balancer)                 │
-│  • Rate Limiting por IP/endpoint                       │
-│  • Health checks a cada 30s                            │
-│  • Algoritmo least_conn                                │
-│  └─ http://localhost:8000                              │
-│       ▼                    ▼                            │
-│  ┌─────────────┐      ┌─────────────┐                  │
-│  │ FastAPI #1  │      │ FastAPI #2  │                  │
-│  │ (Port 8001) │      │ (Port 8002) │                  │
-│  └─────────────┘      └─────────────┘                  │
-│       ▼                    ▼                            │
-│  ┌──────────────────────────────────┐                  │
-│  │  MongoDB (Port 27017)            │                  │
-│  │  • Collection: insights          │                  │
-│  │  • Índices geoespaciais (2dsphere)│                 │
-│  └──────────────────────────────────┘                  │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│  Frontend (Next.js 14 - SSR + Server Actions)   │
+│  • TypeScript + Tailwind CSS                    │
+│  • React Hook Form + Zod validation             │
+│  • HTTP-only cookies para auth                  │
+│  └─ http://localhost:3000                       │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│  Nginx (Reverse Proxy + Load Balancer)          │
+│  • Rate Limiting: 100 req/min por IP            │
+│  • Health checks a cada 30s                     │
+│  • SSL termination ready                        │
+│  └─ http://localhost:80                         │
+│       ▼                                          │
+│  ┌─────────────────────────────────┐            │
+│  │  NestJS API (2 réplicas)        │            │
+│  │  • Ports: 4000-4001             │            │
+│  │  • Guards: JWT, RateLimit, etc  │            │
+│  └─────────────────────────────────┘            │
+│       ▼                                          │
+│  ┌─────────────────────────────────┐            │
+│  │  PostgreSQL 15 + Prisma ORM     │            │
+│  │  • Port: 5432                   │            │
+│  │  • Migrations versionadas       │            │
+│  └─────────────────────────────────┘            │
+│       ▼                                          │
+│  ┌─────────────────────────────────┐            │
+│  │  AWS S3 (Blob Storage)          │            │
+│  │  • Documentos + Thumbnails      │            │
+│  │  • Signed URLs (1h)             │            │
+│  └─────────────────────────────────┘            │
+└──────────────────────────────────────────────────┘
 
-External APIs:
-├─ Open-Meteo (dados climáticos)
-├─ Nominatim/OSM (geocoding)
-├─ NewsAPI (notícias do agro)
-└─ Notícias Agrícolas (cotação cana - scraping)
+External Services:
+├─ AWS Bedrock Claude 3 Haiku (LLM)
+└─ Tesseract.js (OCR - open source)
 ```
 
-### 🔑 Decisões Técnicas
+### 🔑 Decisões de Arquitetura
 
-**Frontend - Next.js 15 (SSG)**
-- ✅ **Performance**: Páginas pré-renderizadas = carregamento instantâneo (~500ms)
-- ✅ **SEO nativo**: Indexação completa sem necessidade de SSR
-- ✅ **Custo**: Deploy estático em S3 (~$0.50/mês)
-- ✅ **Experiência**: Cache inteligente com TanStack Query (30min alinhado com backend)
+**Frontend - Next.js 14 (App Router + SSR)**
+- ✅ **Server Actions**: Autenticação server-side com cookies seguros
+- ✅ **Middleware nativo**: Proteção de rotas sem overhead
+- ✅ **Componentes reativos**: Forms com validação real-time (Zod)
+- ✅ **UX moderna**: Toast notifications, loading states, empty states
 
-**Backend - FastAPI + Python 3.11**
-- ✅ **Inteligência de negócio**: Análise climática contextualizada para cana-de-açúcar
-- ✅ **Agregação de dados**: Open-Meteo + Geocoding + Insights + News + Cotação
-- ✅ **Cache compartilhado**: Reduz ~70% de chamadas às APIs externas
-- ✅ **Rate Limiting (Nginx)**: Proteção contra abuso (limites por endpoint)
+**Backend - NestJS + Prisma**
+- ✅ **Arquitetura modular**: Auth, Documents, LLM, Storage como módulos independentes
+- ✅ **Type-safety end-to-end**: DTOs validados com class-validator
+- ✅ **Guards customizados**: DocumentLimit, TokenLimit, RateLimit por rota
+- ✅ **OCR em background**: Tesseract.js não bloqueia requests
+- ✅ **Criptografia forte**: Argon2id (65MB, 3 iterations) com salt + pepper
 
-**Infraestrutura - Docker Compose**
-- ✅ **Reprodutibilidade**: Ambiente idêntico entre dev/staging/produção
-- ✅ **Alta disponibilidade**: Load balancer + 2 réplicas FastAPI + health checks
-- ✅ **Escalabilidade**: Arquitetura pronta para migração para ECS/Kubernetes
+**Infraestrutura - Docker + Nginx**
+- ✅ **Alta disponibilidade**: 2 réplicas backend com failover automático
+- ✅ **Rate limiting inteligente**: Nginx (global) + NestJS (granular)
+- ✅ **Health checks**: Remove réplicas falhas automaticamente
+- ✅ **Escalabilidade**: Pronto para Kubernetes/ECS sem refatoração
 
 ---
 
 ## 📊 Funcionalidades
 
-### 🌦️ Consulta Climática Inteligente
-- **Autocomplete** de cidades com debounce (300ms) para mitigar rate limiting
-- **Dados em tempo real** da Open-Meteo API (temperatura, umidade, vento, precipitação, UV)
-- **Análise contextualizada** para cana-de-açúcar:
-  - ✅ **Temperatura ideal**: 21-34°C
-  - ✅ **Umidade ideal**: 60-85%
-  - ⚠️ **Alertas críticos**: geada, estresse térmico, doenças fúngicas, acamamento
-- **Previsão 5 dias** com gráficos interativos (Recharts)
-- **Cache de 30 minutos** (sincronizado frontend + backend)
+### 🔐 Autenticação Segura
+- **Registro** com validação forte (email único, senha complexa)
+- **Login** com duplo token (access 15min + refresh 7 dias)
+- **Renovação automática** de tokens via middleware
+- **Logout** com invalidação de refresh token
+- **Cookies HTTP-only**: Imunes a XSS attacks
 
-### 💹 Cotação da Cana-de-Açúcar
-- **Últimos 10 fechamentos** (Campo vs Esteira)
-- **Gráfico interativo** com tooltips customizados
-- **Estatísticas**: variação percentual, diferença Campo/Esteira
-- **Fonte**: Notícias Agrícolas (scraping robusto com retry)
-- **Cache**: 1 hora
+### 📤 Upload e OCR
+- **Formatos suportados**: PNG, JPG, PDF (até 10MB)
+- **Validação robusta**: Magic bytes (não confia em extensão)
+- **Thumbnail automático** para imagens (Sharp)
+- **Processamento assíncrono**: OCR não bloqueia response
+- **Estados visuais**: Processing → Completed → Error
+- **Limite de 5 documentos** por usuário (deletar para liberar espaço)
 
-### 🤝 Fórum Colaborativo
-- **Compartilhamento de insights** entre produtores
-- **Snapshot climático** no momento da publicação
-- **Busca geoespacial** (insights próximos até 500km)
-- **Sistema de tags** para categorização
-- **Scroll infinito** com throttling (2s entre requests)
-- **Persistência**: MongoDB com índices otimizados
+### 🤖 Assistente IA Contextual
+- **Claude 3 Haiku** (AWS Bedrock): Latência ~2s, custo baixo (~$0.25/1M tokens input)
+- **Contexto automático**: LLM recebe texto extraído completo
+- **Histórico persistido**: Todas as interações salvas no banco
+- **Limite de 10.000 tokens** por usuário
+- **Contador visual**: Verde (< 70%) → Amarelo (70-90%) → Vermelho (> 90%)
+- **Respostas em português**: Prompt otimizado para análise documental
 
-### 📰 Feed de Notícias
-- Integração com **NewsAPI**
-- **Categorias**: Agronegócio, Cana-de-Açúcar, Clima
-- **Cache de 1 hora** (economiza quota da API)
-- **Fallback gracioso** (não bloqueia experiência principal)
+### 📥 Exportação Completa
+- **Download PDF compilado**:
+  - Página 1: Imagem original do documento
+  - Página 2+: Texto extraído formatado
+  - Página N: Histórico completo de perguntas e respostas
+- **Biblioteca**: PDFKit para geração server-side
 
-### 📤 Exportação de Dados
-- **CSV**: Clima, Insights, Notícias, Cotação ou Relatório Completo
-- **PDF**: Captura visual da página (html2canvas + jsPDF)
-- **Botões adaptativos**: Compact (desktop) e Floating (mobile)
-- **Encoding UTF-8 com BOM** (compatibilidade Excel)
+### 🛡️ Sistema de Limites e Proteção
 
-### 🛡️ Resiliência e Performance
-
-**Rate Limiting Implementado (Nginx):**
-| Endpoint | Rate Limit | Burst | Estratégia Frontend |
-|----------|-----------|-------|---------------------|
-| `/api/v1/locations/search` | 5 req/s | 10 | Debounce 300ms |
-| `/api/v1/weather` | 1 req/s | 20 | Cache 30min + retry |
-| `/api/v1/insights` (POST) | 10 req/min | 5 | Cooldown tracking |
-| `/api/v1/insights` (GET) | 1 req/s | 20 | Throttle scroll 2s |
-| `/api/v1/news` | Sem limite | - | Cache backend 1h |
-| `/quotation` | Sem limite | - | Cache backend 1h |
-
-**Mecanismos de Recuperação:**
-- ✅ **Retry automático** com exponential backoff
-- ✅ **Cooldown tracking** com persistência em localStorage
-- ✅ **Health checks** a cada 30s (Nginx remove réplicas falhas)
-- ✅ **Failover automático** entre réplicas FastAPI
-- ✅ **Toast notifications** com tempo de espera dinâmico
+| Recurso | Limite | Enforcement |
+|---------|--------|-------------|
+| **Documentos por usuário** | 5 | Guard `DocumentLimitGuard` |
+| **Tokens LLM por usuário** | 10.000 | Guard `TokenLimitGuard` |
+| **Tamanho de arquivo** | 10MB | Middleware Multer |
+| **Rate limit global** | 100 req/min | Nginx |
+| **Rate limit upload** | 3 req/10min | NestJS Throttler |
+| **Rate limit login** | 5 req/10min | NestJS Throttler |
 
 ---
 
 ## 📂 Estrutura do Projeto
 
 ```
-CanaData/
-├── backend/                     # FastAPI (Python 3.11+)
-│   ├── app/
-│   │   ├── api/routes/         # Endpoints REST (weather, insights, news, quotation)
-│   │   ├── core/               # Cache + análise agrícola contextualizada
-│   │   ├── services/           # Integrações externas (Open-Meteo, NewsAPI, scraping)
-│   │   ├── models/             # Schemas Pydantic
-│   │   └── database/           # Conexão MongoDB
-│   ├── nginx/nginx.conf        # Rate limiting + load balancer
-│   └── tests/                  # Testes automatizados
-│
-├── frontend/                    # Next.js 15 (TypeScript)
+documind/
+├── backend/                         # NestJS + Prisma
 │   ├── src/
-│   │   ├── app/                # Pages + layouts (App Router)
-│   │   ├── components/         # UI components (weather, insights, news, quotation)
-│   │   ├── hooks/              # Custom React hooks (useWeather, useInsights, etc)
-│   │   ├── lib/                # API clients + utils + constants
-│   │   └── types/              # TypeScript definitions
-│   └── public/                 # Assets estáticos + SEO (manifest, robots, sitemap)
+│   │   ├── modules/
+│   │   │   ├── auth/               # JWT strategies + guards
+│   │   │   ├── documents/          # Upload + OCR + CRUD
+│   │   │   ├── llm/                # AWS Bedrock integration
+│   │   │   ├── storage/            # S3 abstraction
+│   │   │   └── users/              # User management
+│   │   ├── common/
+│   │   │   ├── guards/             # DocumentLimit, TokenLimit, RateLimit
+│   │   │   ├── filters/            # HTTP + Prisma exception handlers
+│   │   │   └── interceptors/       # Logging, Transform
+│   │   ├── config/                 # Env-based configs (JWT, Storage, LLM)
+│   │   └── main.ts                 # Bootstrap + Swagger setup
+│   ├── prisma/schema.prisma        # Database schema
+│   ├── nginx/nginx.conf            # Load balancer config
+│   └── Dockerfile
 │
-└── docker-compose.yaml          # Orquestração completa (Frontend + Backend 2x + Nginx + MongoDB)
+├── frontend/                        # Next.js 14 App Router
+│   ├── app/
+│   │   ├── (auth)/                 # Login + Registro (group route)
+│   │   ├── (dashboard)/documentos/ # Lista + Detalhes
+│   │   └── api/auth/               # Server Actions (cookies)
+│   ├── components/
+│   │   ├── ui/                     # Button, Input, Toast, Pagination, etc
+│   │   ├── forms/                  # LoginForm, RegisterForm, UploadForm
+│   │   └── document/               # DocumentCard, DocumentList, DocumentViewer
+│   ├── lib/
+│   │   ├── actions/                # Server Actions (auth, documents, llm)
+│   │   ├── auth/                   # Token management, refresh lock
+│   │   └── validations/            # Zod schemas
+│   ├── middleware.ts               # Route protection
+│   └── Dockerfile
+│
+└── docker-compose.yaml              # Orquestração completa
 ```
 
 ---
 
-## 🚧 Melhorias Futuras
+## 🔒 Segurança
+
+### Criptografia de Senhas (Argon2id)
+```typescript
+{
+  type: argon2id,           // Resistente a ataques GPU/ASIC
+  memoryCost: 65536,        // 64 MB
+  timeCost: 3,              // 3 iterations
+  parallelism: 4,
+  saltLength: 32            // Único por usuário
+}
+```
+**Armazenamento**: `hash = argon2id(password + pepper, salt)`
+
+### JWT Tokens
+| Token | Secret | Duração | Storage | Path |
+|-------|--------|---------|---------|------|
+| Access | `JWT_ACCESS_SECRET` | 15min | HTTP-only Cookie | `/` |
+| Refresh | `JWT_REFRESH_SECRET` | 7 dias | HTTP-only Cookie | `/api/auth/refresh` |
+
+**Flags**: `Secure`, `SameSite=Strict`, `HttpOnly`
+
+### Rate Limiting (Nginx)
+```nginx
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/m;
+limit_req zone=api_limit burst=10 nodelay;
+```
+
+### Validação de Arquivos
+- ✅ MIME type via **magic bytes** (primeiros 8 bytes)
+- ✅ Tamanho máximo: 10MB
+- ✅ Formatos: PNG (`89 50 4E 47`), JPG (`FF D8 FF`), PDF (`25 50 44 46`)
+
+---
+
+## 📊 Custos Estimados
+
+### 🆓 Desenvolvimento Local
+- **PostgreSQL**: Docker (grátis)
+- **S3**: 5GB Free Tier primeiro ano (~$0.12/mês após)
+- **Bedrock Claude Haiku**: ~$0.50/mês (10k perguntas)
+- **Total**: ~$0.62/mês
+
+### ☁️ Produção (AWS EC2 Free Tier)
+- **EC2 t2.micro**: Free Tier elegível (750h/mês)
+- **RDS t3.micro**: ~$15/mês (PostgreSQL gerenciado)
+- **S3**: ~$2/mês (50GB + 10k requests)
+- **Bedrock**: ~$20/mês (100k perguntas)
+- **ALB**: ~$22/mês (se não usar Nginx)
+- **Total**: ~$59/mês (com ALB) ou **~$37/mês** (Nginx)
+
+---
+
+## 🧪 Testes
+
+```bash
+# Backend (NestJS + Jest)
+cd backend
+npm run test           # Unit tests
+npm run test:e2e       # Integration tests
+npm run test:cov       # Coverage report
+
+# Frontend (Next.js + Jest)
+cd frontend
+npm run test
+```
+
+---
+
+## 🚧 Roadmap
 
 ### Funcionalidades
-- [ ] Autenticação JWT (perfis de usuário, favoritos)
-- [ ] PWA completo para instalação mobile
-- [ ] Sistema de notificações push (alertas críticos)
-- [ ] Histórico climático com séries temporais
-- [ ] Machine Learning para previsões personalizadas
-- [ ] Integração com imagens de satélite (NDVI)
-- [ ] Sistema de reações nos insights (curtir, comentar)
-- [ ] Dark mode
+- [ ] Suporte a mais idiomas no OCR (espanhol, francês)
+- [ ] Upload via drag & drop
+- [ ] Compartilhamento de documentos entre usuários
+- [ ] Histórico de versões (re-processamento OCR)
+- [ ] Export em DOCX/TXT além de PDF
+- [ ] Busca full-text no conteúdo extraído
 
 ### Performance
-- [ ] Migrar cache para Redis distribuído
-- [ ] CloudFront (CDN) na frente do S3
-- [ ] Request batching para otimizar rate limits
-- [ ] Service Worker (cache offline completo)
-- [ ] Lazy loading de componentes pesados
+- [ ] Queue assíncrona para OCR (Bull/BullMQ)
+- [ ] Cache distribuído (Redis)
+- [ ] WebSockets para status de processamento real-time
+- [ ] Compressão de imagens antes do upload (client-side)
 
 ### Infraestrutura
 - [ ] CI/CD com GitHub Actions
 - [ ] Testes automatizados (80%+ cobertura)
-- [ ] Monitoramento com Prometheus + Grafana
-- [ ] Autoscaling real (AWS ECS Fargate ou Kubernetes)
-- [ ] Certificados SSL (Let's Encrypt)
-- [ ] Backup automático do MongoDB
+- [ ] Monitoramento (Prometheus + Grafana)
+- [ ] Logs estruturados (Winston + CloudWatch)
+- [ ] Kubernetes/ECS para auto-scaling
+- [ ] Multi-region para baixa latência global
+
+---
+
+## 📚 Documentação API
+
+Após iniciar o projeto, acesse:
+
+**Swagger UI**: [http://localhost/api/docs](http://localhost/api/docs)
+
+### Principais Endpoints
+
+```typescript
+// Autenticação
+POST   /auth/register          // Criar conta
+POST   /auth/login             // Login (retorna cookies)
+POST   /auth/refresh           // Renovar access token
+POST   /auth/logout            // Logout
+GET    /auth/session           // Dados do usuário
+
+// Documentos
+GET    /documents              // Listar (paginado)
+POST   /documents/upload       // Upload + OCR
+GET    /documents/:id          // Detalhes + histórico LLM
+DELETE /documents/:id          // Deletar
+GET    /documents/:id/download // Download PDF
+
+// LLM
+POST   /llm/ask                // Fazer pergunta sobre documento
+```
 
 ---
 
@@ -344,7 +429,7 @@ CanaData/
   <table>
     <tr>
       <td align="center" width="200">
-        <img src="https://media.licdn.com/dms/image/v2/D4D03AQHh3rHCD36uKA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1711828725384?e=1766016000&v=beta&t=iLJCng1Xa-5zVB_ZWXaIQAl6Sin9XARkGziuFr-S23Y" width="120px;" alt="Foto de Thiago Volcati" style="border-radius:50%"/>
+        <img src="https://media.licdn.com/dms/image/v2/D4D03AQHh3rHCD36uKA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1711828725384?e=1766016000&v=beta&t=iLJCng1Xa-5zVB_ZWXaIQAl6Sin9XARkGziuFr-S23Y" width="120px;" alt="Foto de Thiago Gomes" style="border-radius:50%"/>
         <br />
         <b>Thiago Gomes</b>
         <br />
@@ -359,25 +444,27 @@ CanaData/
         </a>
       </td>
       <td align="left" valign="top" width="400">
-        <br />
         <h3>🎯 Sobre</h3>
         <p>
           Desenvolvedor fullstack apaixonado por criar soluções que <strong>impactam positivamente o mundo real</strong>. 
           Este projeto demonstra expertise em:
         </p>
-        <ul>
-          <li>🎨 <strong>Frontend moderno:</strong> Next.js 15, TypeScript, Tailwind CSS v4</li>
-          <li>🔧 <strong>Backend robusto:</strong> FastAPI, Python, MongoDB</li>
-          <li>🐋 <strong>DevOps:</strong> Docker, Nginx, Load Balancing</li>
-          <li>☁️ <strong>Cloud:</strong> AWS (EC2, S3, IAM)</li>
-          <li>📊 <strong>Arquitetura:</strong> Cache inteligente, Rate Limiting, Resiliência</li>
-          <li>♿ <strong>Boas práticas:</strong> Clean Code, Documentação, Acessibilidade</li>
+        <p>
+        <strong>Este projeto demonstra expertise em:</strong>
+        </p>
+        <ul style="list-style: none; padding: 0;">
+          <li>🎨 <strong>Frontend moderno:</strong> Next.js 14, TypeScript, Tailwind CSS, Server Actions</li>
+          <li>🔧 <strong>Backend enterprise:</strong> NestJS, Prisma, PostgreSQL, Guards customizados</li>
+          <li>🤖 <strong>IA/ML:</strong> Integração AWS Bedrock, OCR com Tesseract.js</li>
+          <li>🐋 <strong>DevOps:</strong> Docker Compose, Nginx, Load Balancing, Health Checks</li>
+          <li>🔐 <strong>Segurança:</strong> Argon2id, JWT, Rate Limiting, HTTP-only Cookies</li>
+          <li>☁️ <strong>Cloud:</strong> AWS (S3, Bedrock, EC2 ready)</li>
+          <li>📚 <strong>Documentação:</strong> Swagger, README técnico completo</li>
         </ul>
-        <br />
         <p>
           💬 <strong>Aberto a oportunidades e colaborações!</strong>
         </p>
       </td>
     </tr>
   </table>
-</div> -->
+</div>
