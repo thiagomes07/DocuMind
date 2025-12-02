@@ -428,7 +428,7 @@ POST   /llm/ask                // Fazer pergunta sobre documento
 <div align="center">
   <table>
     <tr>
-      <td align="center" width="200">
+      <td align="center" width="300">
         <img src="https://media.licdn.com/dms/image/v2/D4D03AQHh3rHCD36uKA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1711828725384?e=1766016000&v=beta&t=iLJCng1Xa-5zVB_ZWXaIQAl6Sin9XARkGziuFr-S23Y" width="120px;" alt="Foto de Thiago Gomes" style="border-radius:50%"/>
         <br />
         <b>Thiago Gomes</b>
@@ -446,11 +446,8 @@ POST   /llm/ask                // Fazer pergunta sobre documento
       <td align="left" valign="top" width="400">
         <h3>🎯 Sobre</h3>
         <p>
-          Desenvolvedor fullstack apaixonado por criar soluções que <strong>impactam positivamente o mundo real</strong>. 
+          Desenvolvedor fullstack apaixonado por criar soluções que <strong>impactam o mundo real de verdade</strong>. 
           Este projeto demonstra expertise em:
-        </p>
-        <p>
-        <strong>Este projeto demonstra expertise em:</strong>
         </p>
         <ul style="list-style: none; padding: 0;">
           <li>🎨 <strong>Frontend moderno:</strong> Next.js 14, TypeScript, Tailwind CSS, Server Actions</li>

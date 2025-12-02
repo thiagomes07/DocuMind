@@ -1,15 +1,76 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String       @id @default(uuid())
+  email             String       @unique
+  name              String
+  passwordHash      String
+  passwordSalt      String
+  refreshTokenHash  String?
+  
+  documentsCount    Int          @default(0)
+  documentsLimit    Int          @default(5)
+  tokensUsed        Int          @default(0)
+  tokensLimit       Int          @default(10000)
+  
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  
+  documents         Document[]
+  
+  @@index([email])
+}
+
+model Document {
+  id              String             @id @default(uuid())
+  userId          String
+  filename        String
+  originalName    String
+  mimeType        String
+  fileSize        Int
+  s3Key           String
+  s3ThumbnailKey  String?
+  
+  status          DocumentStatus     @default(PROCESSING)
+  extractedText   String?
+  ocrCompletedAt  DateTime?
+  errorMessage    String?
+  
+  uploadedAt      DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  llmInteractions LLMInteraction[]
+  
+  @@index([userId, uploadedAt])
+  @@index([status])
+}
+
+enum DocumentStatus {
+  PROCESSING
+  COMPLETED
+  ERROR
+}
+
+model LLMInteraction {
+  id            String    @id @default(uuid())
+  documentId    String
+  userId        String
+  question      String    @db.Text
+  answer        String    @db.Text
+  tokensUsed    Int
+  
+  createdAt     DateTime  @default(now())
+  
+  document      Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@index([documentId, createdAt])
+  @@index([userId])
 }
