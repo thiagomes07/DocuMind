@@ -1,114 +1,81 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ButtonHTMLAttributes, forwardRef } from "react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  className?: string;
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "danger" | "ghost";
+  size?: "sm" | "md" | "lg";
+  isLoading?: boolean;
+  fullWidth?: boolean;
 }
 
-export function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  className,
-}: PaginationProps) {
-  if (totalPages <= 1) return null;
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = "primary",
+      size = "md",
+      isLoading = false,
+      disabled,
+      fullWidth = false,
+      children,
+      type = "button",
+      ...props
+    },
+    ref
+  ) => {
+    const baseStyles =
+      "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none select-none";
 
-  const getPageNumbers = (): (number | string)[] => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
+    const variants = {
+      primary:
+        "bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md active:bg-primary-700 focus-visible:ring-primary-500",
 
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push('...');
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push('...');
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push('...');
-        pages.push(currentPage - 1);
-        pages.push(currentPage);
-        pages.push(currentPage + 1);
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
+      secondary:
+        "bg-gray-100 text-gray-900 border border-gray-200 shadow-sm hover:bg-gray-200 hover:border-gray-300 active:bg-gray-300 focus-visible:ring-gray-500",
 
-    return pages;
-  };
+      danger:
+        "bg-error-600 text-white shadow-sm hover:bg-error-700 hover:shadow-md active:bg-error-700 focus-visible:ring-error-500",
 
-  const pageNumbers = getPageNumbers();
+      ghost:
+        "bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus-visible:ring-gray-400",
+    };
 
-  return (
-    <nav
-      className={cn('flex items-center justify-center gap-1', className)}
-      aria-label="Paginação"
-    >
+    const sizes = {
+      sm: "px-3 py-2 text-sm min-h-[36px]",
+      md: "px-4 py-2.5 text-base min-h-[44px]",
+      lg: "px-6 py-3 text-lg min-h-[52px]",
+    };
+
+    const widthStyles = fullWidth ? "w-full" : "";
+
+    return (
       <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className="flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--gray-300)] bg-white text-[var(--gray-700)] hover:bg-[var(--gray-50)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]"
-        aria-label="Página anterior"
+        ref={ref}
+        type={type}
+        className={cn(
+          baseStyles,
+          variants[variant],
+          sizes[size],
+          widthStyles,
+          className
+        )}
+        disabled={disabled || isLoading}
+        {...props}
       >
-        <ChevronLeft className="h-4 w-4" />
+        {isLoading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Aguarde...</span>
+          </>
+        ) : (
+          children
+        )}
       </button>
+    );
+  }
+);
 
-      {pageNumbers.map((page, index) => {
-        if (page === '...') {
-          return (
-            <span
-              key={`ellipsis-${index}`}
-              className="flex items-center justify-center h-9 w-9 text-[var(--gray-500)]"
-              aria-hidden="true"
-            >
-              ...
-            </span>
-          );
-        }
+Button.displayName = "Button";
 
-        const pageNum = page as number;
-        const isActive = pageNum === currentPage;
-
-        return (
-          <button
-            key={pageNum}
-            onClick={() => onPageChange(pageNum)}
-            className={cn(
-              'flex items-center justify-center h-9 w-9 rounded-lg border font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]',
-              isActive
-                ? 'bg-[var(--primary-500)] border-[var(--primary-500)] text-white'
-                : 'bg-white border-[var(--gray-300)] text-[var(--gray-700)] hover:bg-[var(--gray-50)]'
-            )}
-            aria-label={`Página ${pageNum}`}
-            aria-current={isActive ? 'page' : undefined}
-          >
-            {pageNum}
-          </button>
-        );
-      })}
-
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className="flex items-center justify-center h-9 w-9 rounded-lg border border-[var(--gray-300)] bg-white text-[var(--gray-700)] hover:bg-[var(--gray-50)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]"
-        aria-label="Próxima página"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    </nav>
-  );
-}
+export { Button };

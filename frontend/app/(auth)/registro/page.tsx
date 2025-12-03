@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--gray-900)] mb-2">
-          Criar uma conta
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          Criar sua conta ✨
         </h2>
-        <p className="text-sm text-[var(--gray-600)]">
-          Comece a usar o DocuMind gratuitamente
+        <p className="text-base text-gray-600">
+          Comece a usar o DocuMind gratuitamente hoje
         </p>
       </div>
 

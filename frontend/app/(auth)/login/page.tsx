@@ -8,14 +8,14 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-[var(--gray-900)] mb-2">
-          Bem-vindo de volta
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          Bem-vindo de volta! 👋
         </h2>
-        <p className="text-sm text-[var(--gray-600)]">
-          Entre com suas credenciais para continuar
+        <p className="text-base text-gray-600">
+          Entre com suas credenciais para acessar sua conta
         </p>
       </div>
 

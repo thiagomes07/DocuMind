@@ -6,6 +6,9 @@ import { AuthProvider } from '@/contexts/auth-context';
 export const metadata: Metadata = {
   title: 'DocuMind | Sistema OCR com IA',
   description: 'Extraia texto de documentos e faça perguntas com IA',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

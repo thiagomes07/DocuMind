@@ -7,7 +7,7 @@ import { useToast } from '@/contexts/toast-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { loginSchema, LoginFormData } from '@/lib/validations/auth';
-import { LogIn } from 'lucide-react';
+import { LogIn, ArrowRight } from 'lucide-react';
 
 export function LoginForm() {
   const [formData, setFormData] = useState<LoginFormData>({
@@ -24,7 +24,6 @@ export function LoginForm() {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    // Clear error on change
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
@@ -36,19 +35,14 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      // Validate with Zod
       const validated = loginSchema.parse(formData);
-
-      // Call login action
       const result = await login(validated);
 
       if (!result.success && result.error) {
         toast.error(result.error.message);
       }
-      // Success toast is handled by AuthContext
     } catch (error: any) {
       if (error.name === 'ZodError') {
-        // Map Zod errors to form fields
         const fieldErrors: Partial<Record<keyof LoginFormData, string>> = {};
         error.errors.forEach((err: any) => {
           const field = err.path[0] as keyof LoginFormData;
@@ -67,7 +61,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <Input
           label="Email"
           type="email"
@@ -83,13 +77,24 @@ export function LoginForm() {
         <Input
           label="Senha"
           type="password"
-          placeholder="••••••••"
+          placeholder="Digite sua senha"
           value={formData.password}
           onChange={handleChange('password')}
           error={errors.password}
           disabled={isSubmitting}
           autoComplete="current-password"
         />
+      </div>
+
+      {/* Forgot Password Link */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+          onClick={() => toast.info('Funcionalidade em breve')}
+        >
+          Esqueceu sua senha?
+        </button>
       </div>
 
       <Button
@@ -100,19 +105,30 @@ export function LoginForm() {
         isLoading={isSubmitting}
         disabled={isSubmitting}
       >
-        <LogIn className="h-5 w-5" />
-        Entrar
+        {!isSubmitting && <LogIn className="h-5 w-5" />}
+        Entrar na conta
       </Button>
 
-      <p className="text-center text-sm text-[var(--gray-600)]">
-        Não tem uma conta?{' '}
-        <Link
-          href="/registro"
-          className="font-medium text-[var(--primary-500)] hover:text-[var(--primary-600)] transition-colors focus:outline-none focus:underline"
-        >
-          Criar conta
-        </Link>
-      </p>
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-white text-gray-500">
+            Novo no DocuMind?
+          </span>
+        </div>
+      </div>
+
+      {/* Register Link */}
+      <Link
+        href="/registro"
+        className="flex items-center justify-center gap-2 w-full px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        Criar uma conta grátis
+        <ArrowRight className="h-4 w-4" />
+      </Link>
     </form>
   );
 }

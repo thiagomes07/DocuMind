@@ -11,7 +11,7 @@ import {
   RegisterFormData,
   getPasswordStrength,
 } from '@/lib/validations/auth';
-import { UserPlus, CheckCircle2, XCircle } from 'lucide-react';
+import { UserPlus, Check, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function RegisterForm() {
@@ -27,13 +27,11 @@ export function RegisterForm() {
   const { register } = useAuth();
   const toast = useToast();
 
-  // Calculate password strength
   const passwordStrength = useMemo(() => {
     if (!formData.password) return null;
     return getPasswordStrength(formData.password);
   }, [formData.password]);
 
-  // Password requirements
   const requirements = useMemo(() => {
     const pwd = formData.password;
     return {
@@ -47,7 +45,6 @@ export function RegisterForm() {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    // Clear error on change
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
@@ -59,19 +56,14 @@ export function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      // Validate with Zod
       const validated = registerSchema.parse(formData);
-
-      // Call register action
       const result = await register(validated);
 
       if (!result.success && result.error) {
         toast.error(result.error.message);
       }
-      // Success toast is handled by AuthContext
     } catch (error: any) {
       if (error.name === 'ZodError') {
-        // Map Zod errors to form fields
         const fieldErrors: Partial<Record<keyof RegisterFormData, string>> = {};
         error.errors.forEach((err: any) => {
           const field = err.path[0] as keyof RegisterFormData;
@@ -88,21 +80,27 @@ export function RegisterForm() {
     }
   };
 
-  const strengthColors = {
-    weak: 'bg-[var(--error-500)]',
-    medium: 'bg-[var(--warning-500)]',
-    strong: 'bg-[var(--success-500)]',
-  };
-
-  const strengthLabels = {
-    weak: 'Fraca',
-    medium: 'Média',
-    strong: 'Forte',
+  const strengthConfig = {
+    weak: {
+      color: 'bg-red-500',
+      text: 'Fraca',
+      textColor: 'text-red-600',
+    },
+    medium: {
+      color: 'bg-yellow-500',
+      text: 'Média',
+      textColor: 'text-yellow-600',
+    },
+    strong: {
+      color: 'bg-green-500',
+      text: 'Forte',
+      textColor: 'text-green-600',
+    },
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
+      <div className="space-y-5">
         <Input
           label="Nome completo"
           type="text"
@@ -130,7 +128,7 @@ export function RegisterForm() {
           <Input
             label="Senha"
             type="password"
-            placeholder="••••••••"
+            placeholder="Crie uma senha forte"
             value={formData.password}
             onChange={handleChange('password')}
             error={errors.password}
@@ -138,31 +136,42 @@ export function RegisterForm() {
             autoComplete="new-password"
           />
 
-          {/* Password Strength Indicator */}
           {formData.password && passwordStrength && (
-            <div className="mt-2 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-[var(--gray-200)] rounded-full overflow-hidden">
+            <div className="mt-3 space-y-3">
+              {/* Strength Bar */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-gray-600">
+                    Força da senha
+                  </span>
+                  <span className={cn(
+                    'text-xs font-semibold',
+                    strengthConfig[passwordStrength.strength].textColor
+                  )}>
+                    {strengthConfig[passwordStrength.strength].text}
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className={cn(
-                      'h-full transition-all duration-300',
-                      strengthColors[passwordStrength.strength]
+                      'h-full transition-all duration-300 rounded-full',
+                      strengthConfig[passwordStrength.strength].color
                     )}
                     style={{
                       width: `${(passwordStrength.score / 6) * 100}%`,
                     }}
                   />
                 </div>
-                <span className="text-xs font-medium text-[var(--gray-600)]">
-                  {strengthLabels[passwordStrength.strength]}
-                </span>
               </div>
 
               {/* Requirements */}
-              <div className="space-y-1">
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-medium text-gray-700 mb-2">
+                  Sua senha deve conter:
+                </p>
                 <RequirementItem
                   met={requirements.minLength}
-                  text="Mínimo 8 caracteres"
+                  text="Mínimo de 8 caracteres"
                 />
                 <RequirementItem
                   met={requirements.hasUppercase}
@@ -180,7 +189,7 @@ export function RegisterForm() {
         <Input
           label="Confirmar senha"
           type="password"
-          placeholder="••••••••"
+          placeholder="Digite a senha novamente"
           value={formData.confirmPassword}
           onChange={handleChange('confirmPassword')}
           error={errors.confirmPassword}
@@ -197,19 +206,50 @@ export function RegisterForm() {
         isLoading={isSubmitting}
         disabled={isSubmitting}
       >
-        <UserPlus className="h-5 w-5" />
-        Criar conta
+        {!isSubmitting && <UserPlus className="h-5 w-5" />}
+        Criar minha conta
       </Button>
 
-      <p className="text-center text-sm text-[var(--gray-600)]">
-        Já tem uma conta?{' '}
-        <Link
-          href="/login"
-          className="font-medium text-[var(--primary-500)] hover:text-[var(--primary-600)] transition-colors focus:outline-none focus:underline"
+      {/* Terms */}
+      <p className="text-xs text-center text-gray-500">
+        Ao criar uma conta, você concorda com nossos{' '}
+        <button
+          type="button"
+          className="text-blue-600 hover:text-blue-700 underline"
+          onClick={() => toast.info('Funcionalidade em breve')}
         >
-          Fazer login
-        </Link>
+          Termos de Uso
+        </button>{' '}
+        e{' '}
+        <button
+          type="button"
+          className="text-blue-600 hover:text-blue-700 underline"
+          onClick={() => toast.info('Funcionalidade em breve')}
+        >
+          Política de Privacidade
+        </button>
       </p>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
+        </div>
+        <div className="relative flex justify-center text-sm mt-5">
+          <span className="px-4 bg-white text-gray-500">
+            Já tem uma conta?
+          </span>
+        </div>
+      </div>
+
+      {/* Login Link */}
+      <Link
+        href="/login"
+        className="flex items-center justify-center gap-2 w-full px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Voltar para login
+      </Link>
     </form>
   );
 }
@@ -218,16 +258,17 @@ function RequirementItem({ met, text }: { met: boolean; text: string }) {
   return (
     <div
       className={cn(
-        'flex items-center gap-1.5 text-xs transition-colors',
-        met ? 'text-[var(--success-600)]' : 'text-[var(--gray-500)]'
+        'flex items-center gap-2 text-xs transition-colors',
+        met ? 'text-green-700' : 'text-gray-500'
       )}
     >
-      {met ? (
-        <CheckCircle2 className="h-3.5 w-3.5" />
-      ) : (
-        <XCircle className="h-3.5 w-3.5" />
-      )}
-      <span>{text}</span>
+      <div className={cn(
+        'w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0',
+        met ? 'bg-green-100' : 'bg-gray-100'
+      )}>
+        {met && <Check className="h-3 w-3 text-green-600" />}
+      </div>
+      <span className={met ? 'font-medium' : ''}>{text}</span>
     </div>
   );
 }
