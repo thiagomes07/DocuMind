@@ -12,27 +12,24 @@ WORKDIR /app
 # ============================================
 FROM base AS builder
 
-# Copiar arquivos de dependências
+WORKDIR /app
+
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Instalar dependências (incluindo devDependencies para o build)
-# Usamos npm ci para garantir instalação limpa baseada no lockfile
+# Instala dependências limpas
 RUN npm ci
 
-# Gerar o cliente Prisma
-# ENV DATABASE_URL é dummy apenas para o generate funcionar, não conecta no banco
+# Define a variável dummy para o generate não reclamar
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
+# AQUI É O PULO DO GATO:
+# O schema agora tem binaryTargets, então ele vai baixar o engine correto para Alpine
 RUN npx prisma generate
 
-# Copiar o restante do código fonte
 COPY . .
 
-# Build da aplicação NestJS
 RUN npm run build
-
-# Limpar dependências e instalar apenas as de produção para otimizar imagem final
-# Isso remove o typescript, eslint, etc.
 RUN npm prune --production
 
 # ============================================

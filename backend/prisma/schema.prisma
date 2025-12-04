@@ -8,6 +8,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ... resto do seu schema
+
 // ===== USER MODEL =====
 model User {
   id                String       @id @default(uuid())
