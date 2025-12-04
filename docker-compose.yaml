@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # ===== PostgreSQL Database =====
   postgres:
     image: postgres:15-alpine
     container_name: ocr-postgres
@@ -9,20 +8,19 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ocruser
-      POSTGRES_PASSWORD: ocrpass123
-      POSTGRES_DB: ocr_db
+      POSTGRES_USER: ${POSTGRES_USER:-ocruser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ocrpass123}
+      POSTGRES_DB: ${POSTGRES_DB:-ocr_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ocruser -d ocr_db"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ocruser} -d ${POSTGRES_DB:-ocr_db}"]
+      interval: 5s
       timeout: 5s
       retries: 5
     networks:
       - ocr-network
 
-  # ===== Backend NestJS =====
   backend:
     build:
       context: ./backend
@@ -32,58 +30,49 @@ services:
     ports:
       - "4000:4000"
     environment:
-      # App
-      NODE_ENV: production
+      NODE_ENV: production # ou development se quiser hot-reload (veja nota abaixo)
       PORT: 4000
-      FRONTEND_URL: http://localhost
+      # Conexão com o container do banco
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ocruser}:${POSTGRES_PASSWORD:-ocrpass123}@postgres:5432/${POSTGRES_DB:-ocr_db}
       
-      # Database
-      DATABASE_URL: postgresql://ocruser:ocrpass123@postgres:5432/ocr_db
-      
-      # JWT & Security (⚠️ USAR VALORES FORTES EM PRODUÇÃO)
+      # JWT & Security
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       PASSWORD_PEPPER: ${PASSWORD_PEPPER}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       
-      # AWS (usar .env na raiz)
+      # AWS S3 & Bedrock
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       S3_BUCKET: ${S3_BUCKET}
-      S3_PREFIX: ${S3_PREFIX:-dev}
+      S3_PREFIX: ${S3_PREFIX}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID}
       
-      # Bedrock
-      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-anthropic.claude-3-haiku-20240307-v1:0}
+      # Limits
+      MAX_DOCUMENTS_PER_USER: ${MAX_DOCUMENTS_PER_USER}
+      MAX_TOKENS_PER_USER: ${MAX_TOKENS_PER_USER}
       
-      # Limites
-      MAX_DOCUMENTS_PER_USER: 5
-      MAX_TOKENS_PER_USER: 10000
-      MAX_FILE_SIZE_MB: 10
+      # Frontend
+      FRONTEND_URL: ${FRONTEND_URL}
+      
     depends_on:
       postgres:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
     networks:
       - ocr-network
-    # Executar migrations na inicialização
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
 
-  # ===== Frontend Next.js =====
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost/api
-        NEXT_PUBLIC_MAX_DOCUMENTS: 5
-        NEXT_PUBLIC_MAX_TOKENS: 10000
-        NEXT_PUBLIC_MAX_FILE_SIZE: 10485760
+        # Next.js precisa dessas vars no tempo de BUILD (npm run build)
+        NEXT_PUBLIC_API_URL: http://localhost:4000/api 
+        NEXT_PUBLIC_MAX_DOCUMENTS: ${MAX_DOCUMENTS_PER_USER}
+        NEXT_PUBLIC_MAX_TOKENS: ${MAX_TOKENS_PER_USER}
+        NEXT_PUBLIC_MAX_FILE_SIZE: ${MAX_FILE_SIZE_MB}
     container_name: ocr-frontend
     restart: unless-stopped
     ports:
@@ -93,16 +82,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 40s
     networks:
       - ocr-network
 
-  # ===== Nginx Load Balancer =====
   nginx:
     build:
       context: ./backend
@@ -116,12 +98,6 @@ services:
         condition: service_healthy
       frontend:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
     networks:
       - ocr-network
     volumes:
@@ -129,9 +105,7 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
   nginx_logs:
-    driver: local
 
 networks:
   ocr-network:
