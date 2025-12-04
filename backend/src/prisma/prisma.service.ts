@@ -5,11 +5,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaService
-  extends PrismaClient
+  extends PrismaClient<Prisma.PrismaClientOptions, 'query'>
   implements OnModuleInit, OnModuleDestroy
 {
   private readonly logger = new Logger(PrismaService.name);
@@ -30,10 +30,9 @@ export class PrismaService
 
     // Log queries in development if enabled
     if (logQueries) {
-      // @ts-ignore
-      this.$on('query', (e) => {
-        this.logger.debug(`Query: ${e.query}`);
-        this.logger.debug(`Duration: ${e.duration}ms`);
+      this.$on('query', (event: Prisma.QueryEvent) => {
+        this.logger.debug(`Query: ${event.query}`);
+        this.logger.debug(`Duration: ${event.duration}ms`);
       });
     }
   }
@@ -77,10 +76,9 @@ export class PrismaService
    * Enable query logging at runtime
    */
   enableQueryLogging() {
-    // @ts-ignore
-    this.$on('query', (e) => {
-      this.logger.debug(`Query: ${e.query}`);
-      this.logger.debug(`Duration: ${e.duration}ms`);
+    this.$on('query', (event: Prisma.QueryEvent) => {
+      this.logger.debug(`Query: ${event.query}`);
+      this.logger.debug(`Duration: ${event.duration}ms`);
     });
   }
 }

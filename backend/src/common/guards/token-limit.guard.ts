@@ -5,7 +5,6 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../modules/users/users.service';
 
@@ -19,7 +18,6 @@ export class TokenLimitGuard implements CanActivate {
   private readonly logger = new Logger(TokenLimitGuard.name);
 
   constructor(
-    private reflector: Reflector,
     private usersService: UsersService,
     private configService: ConfigService,
   ) {}
@@ -41,7 +39,8 @@ export class TokenLimitGuard implements CanActivate {
     );
 
     if (hasReachedLimit) {
-      const maxTokens = this.configService.get<number>('app.maxTokensPerUser');
+      const maxTokens =
+        this.configService.get<number>('app.maxTokensPerUser') ?? 10000;
 
       this.logger.warn(
         `User ${userId} attempted LLM request but has reached token limit (${maxTokens})`,

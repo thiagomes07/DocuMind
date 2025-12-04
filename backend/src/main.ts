@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 /**
@@ -174,8 +174,8 @@ Todos os erros seguem o formato:
   app.enableShutdownHooks();
 
   // ===== START SERVER =====
-  const port = configService.get<number>('app.port');
-  const nodeEnv = configService.get<string>('app.nodeEnv');
+  const port = configService.get<number>('app.port') ?? 4000;
+  const nodeEnv = configService.get<string>('app.nodeEnv') ?? 'development';
 
   await app.listen(port);
 

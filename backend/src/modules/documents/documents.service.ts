@@ -12,8 +12,7 @@ import { UsersService } from '../users/users.service';
 import { OcrProcessor } from './processors/ocr.processor';
 import { Document, DocumentStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import * as PDFDocument from 'pdfkit';
-import { Readable } from 'stream';
+import PDFDocument from 'pdfkit';
 
 @Injectable()
 export class DocumentsService {
@@ -415,10 +414,14 @@ export class DocumentsService {
    * Validate uploaded file
    */
   private validateFile(file: Express.Multer.File): void {
-    const maxSize = this.config.get<number>('storage.maxFileSize');
-    const allowedTypes = this.config.get<string[]>(
-      'storage.allowedMimeTypes',
-    );
+    const maxSize =
+      this.config.get<number>('storage.maxFileSize') ?? 10 * 1024 * 1024;
+    const allowedTypes =
+      this.config.get<string[]>('storage.allowedMimeTypes') ?? [
+        'image/png',
+        'image/jpeg',
+        'application/pdf',
+      ];
 
     // Check file size
     if (file.size > maxSize) {

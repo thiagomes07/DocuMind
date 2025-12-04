@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { createWorker, Worker } from 'tesseract.js';
+import { createWorker, Worker, PSM } from 'tesseract.js';
 
 /**
  * OCR Processor Service
@@ -31,7 +31,7 @@ export class OcrProcessor {
 
     // Configure OCR settings
     await worker.setParameters({
-      tessedit_pageseg_mode: '3', // Fully automatic page segmentation
+      tessedit_pageseg_mode: PSM.AUTO,
       tessedit_ocr_engine_mode: '1', // LSTM neural net mode
     });
 

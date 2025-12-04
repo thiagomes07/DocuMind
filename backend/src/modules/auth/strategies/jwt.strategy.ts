@@ -5,7 +5,7 @@ import { Request } from 'express';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AuthService } from '../auth.service';
 import { JwtPayload } from '../dto/tokens.dto';
-import { User } from '@prisma/client';
+import type { User } from '@prisma/client';
 
 /**
  * JWT Strategy - Validates access tokens from cookies
@@ -17,6 +17,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private authService: AuthService,
     private configService: ConfigService,
   ) {
+    const accessSecret = configService.get<string>('jwt.accessSecret');
+    if (!accessSecret) {
+      throw new Error('JWT access secret is not configured');
+    }
+
     super({
       // Extract JWT from cookie
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -29,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('jwt.accessSecret'),
+      secretOrKey: accessSecret,
       passReqToCallback: false,
     });
   }

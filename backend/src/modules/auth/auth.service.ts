@@ -1,7 +1,3 @@
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AuthService {}
 import {
   Injectable,
   UnauthorizedException,
@@ -10,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import type { Response } from 'express';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,7 +14,17 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload, TokenPair } from './dto/tokens.dto';
-import { User } from '@prisma/client';
+import type { User } from '@prisma/client';
+
+type DurationString =
+  | `${number}ms`
+  | `${number}s`
+  | `${number}m`
+  | `${number}h`
+  | `${number}d`
+  | `${number}w`
+  | `${number}y`;
+type JwtExpiresIn = number | DurationString;
 
 @Injectable()
 export class AuthService {
@@ -30,7 +36,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {
-    this.pepper = this.configService.get<string>('app.passwordPepper');
+    this.pepper = this.configService.get<string>('app.passwordPepper') ?? '';
     if (!this.pepper) {
       throw new Error('PASSWORD_PEPPER environment variable is required');
     }
@@ -187,10 +193,18 @@ export class AuthService {
       email: user.email,
       type: 'access',
     };
+    const accessSecret = this.configService.get<string>('jwt.accessSecret');
+    if (!accessSecret) {
+      throw new Error('JWT access secret is not configured');
+    }
+
+    const accessExpiresIn: JwtExpiresIn =
+      (this.configService.get<string>('jwt.accessExpiresIn') as DurationString) ??
+      '15m';
 
     return this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>('jwt.accessSecret'),
-      expiresIn: this.configService.get<string>('jwt.accessExpiresIn'),
+      secret: accessSecret,
+      expiresIn: accessExpiresIn,
     });
   }
 
@@ -204,10 +218,18 @@ export class AuthService {
       type: 'refresh',
       jti: uuidv4(), // Unique ID for this refresh token
     };
+    const refreshSecret = this.configService.get<string>('jwt.refreshSecret');
+    if (!refreshSecret) {
+      throw new Error('JWT refresh secret is not configured');
+    }
+
+    const refreshExpiresIn: JwtExpiresIn =
+      (this.configService.get<string>('jwt.refreshExpiresIn') as DurationString) ??
+      '7d';
 
     return this.jwtService.signAsync(payload, {
-      secret: this.configService.get<string>('jwt.refreshSecret'),
-      expiresIn: this.configService.get<string>('jwt.refreshExpiresIn'),
+      secret: refreshSecret,
+      expiresIn: refreshExpiresIn,
     });
   }
 
@@ -277,6 +299,10 @@ export class AuthService {
   setAuthCookies(res: Response, tokens: TokenPair): void {
     const cookieConfig = this.configService.get('jwt.cookie');
 
+    if (!cookieConfig) {
+      throw new Error('JWT cookie configuration is missing');
+    }
+
     // Set access token cookie
     res.cookie(
       cookieConfig.access.name,
@@ -312,6 +338,10 @@ export class AuthService {
   setAccessTokenCookie(res: Response, accessToken: string): void {
     const cookieConfig = this.configService.get('jwt.cookie');
 
+    if (!cookieConfig) {
+      throw new Error('JWT cookie configuration is missing');
+    }
+
     res.cookie(
       cookieConfig.access.name,
       accessToken,
@@ -332,6 +362,10 @@ export class AuthService {
    */
   clearAuthCookies(res: Response): void {
     const cookieConfig = this.configService.get('jwt.cookie');
+
+    if (!cookieConfig) {
+      throw new Error('JWT cookie configuration is missing');
+    }
 
     // Clear access token
     res.clearCookie(cookieConfig.access.name, {

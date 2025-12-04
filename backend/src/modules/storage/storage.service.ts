@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -6,9 +10,10 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  type S3ClientConfig,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 @Injectable()
 export class StorageService {
@@ -18,19 +23,31 @@ export class StorageService {
   private readonly prefix: string;
 
   constructor(private configService: ConfigService) {
-    // Initialize S3 client
-    this.s3Client = new S3Client({
-      region: this.configService.get<string>('storage.region'),
-      credentials: {
-        accessKeyId: this.configService.get<string>('storage.accessKeyId'),
-        secretAccessKey: this.configService.get<string>(
-          'storage.secretAccessKey',
-        ),
-      },
-    });
+    const region = this.configService.get<string>('storage.region');
+    if (!region) {
+      throw new Error('Storage region is not configured');
+    }
 
-    this.bucket = this.configService.get<string>('storage.bucket');
-    this.prefix = this.configService.get<string>('storage.prefix');
+    const accessKeyId = this.configService.get<string>('storage.accessKeyId');
+    const secretAccessKey = this.configService.get<string>(
+      'storage.secretAccessKey',
+    );
+
+    const clientConfig: S3ClientConfig = { region };
+
+    if (accessKeyId && secretAccessKey) {
+      clientConfig.credentials = { accessKeyId, secretAccessKey };
+    }
+
+    // Initialize S3 client
+    this.s3Client = new S3Client(clientConfig);
+
+    this.bucket = this.configService.get<string>('storage.bucket') ?? '';
+    if (!this.bucket) {
+      throw new Error('Storage bucket is not configured');
+    }
+
+    this.prefix = this.configService.get<string>('storage.prefix') ?? 'dev';
 
     this.logger.log(
       `✅ S3 Storage initialized: ${this.bucket} (${this.prefix})`,
@@ -92,8 +109,9 @@ export class StorageService {
   async getSignedUrl(key: string, expiresIn?: number): Promise<string> {
     try {
       const expiration =
-        expiresIn ||
-        this.configService.get<number>('storage.signedUrlExpiration');
+        expiresIn ??
+        this.configService.get<number>('storage.signedUrlExpiration') ??
+        3600;
 
       const command = new GetObjectCommand({
         Bucket: this.bucket,
@@ -125,10 +143,15 @@ export class StorageService {
       });
 
       const response = await this.s3Client.send(command);
+      const body = response.Body as AsyncIterable<Uint8Array> | undefined;
+
+      if (!body) {
+        throw new InternalServerErrorException('Arquivo indisponível para download');
+      }
 
       // Convert stream to buffer
       const chunks: Uint8Array[] = [];
-      for await (const chunk of response.Body as any) {
+      for await (const chunk of body) {
         chunks.push(chunk);
       }
 
@@ -168,11 +191,17 @@ export class StorageService {
   async generateThumbnail(
     imageBuffer: Buffer,
     key: string,
-  ): Promise<string> {
+  ): Promise<string | null> {
     try {
       this.logger.debug(`Generating thumbnail for: ${key}`);
 
-      const thumbnailConfig = this.configService.get('storage.thumbnail');
+      const thumbnailConfig =
+        this.configService.get('storage.thumbnail') ?? {
+          width: 320,
+          height: 320,
+          fit: 'cover',
+          quality: 80,
+        };
 
       // Resize image using sharp
       const thumbnailBuffer = await sharp(imageBuffer)
@@ -203,7 +232,8 @@ export class StorageService {
     documentId: string,
     extension: string,
   ): string {
-    const keyPatterns = this.configService.get('storage.keyPatterns');
+    const keyPatterns =
+      this.configService.get('storage.keyPatterns') ?? this.defaultKeyPatterns();
     return keyPatterns.document(userId, documentId, extension);
   }
 
@@ -211,8 +241,18 @@ export class StorageService {
    * Build S3 key for thumbnail
    */
   buildThumbnailKey(userId: string, documentId: string): string {
-    const keyPatterns = this.configService.get('storage.keyPatterns');
+    const keyPatterns =
+      this.configService.get('storage.keyPatterns') ?? this.defaultKeyPatterns();
     return keyPatterns.thumbnail(userId, documentId);
+  }
+
+  private defaultKeyPatterns() {
+    return {
+      document: (userId: string, documentId: string, extension: string) =>
+        `${this.prefix}/documents/${userId}/${documentId}.${extension}`,
+      thumbnail: (userId: string, documentId: string) =>
+        `${this.prefix}/thumbnails/${userId}/${documentId}.jpg`,
+    };
   }
 
   /**
@@ -240,9 +280,8 @@ export class StorageService {
    * Validate if MIME type is allowed
    */
   isAllowedMimeType(mimeType: string): boolean {
-    const allowedTypes = this.configService.get<string[]>(
-      'storage.allowedMimeTypes',
-    );
+    const allowedTypes =
+      this.configService.get<string[]>('storage.allowedMimeTypes') ?? [];
     return allowedTypes.includes(mimeType);
   }
 

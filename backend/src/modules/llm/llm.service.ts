@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   BedrockRuntimeClient,
   InvokeModelCommand,
+  type BedrockRuntimeClientConfig,
 } from '@aws-sdk/client-bedrock-runtime';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
@@ -26,17 +27,25 @@ export class LlmService {
     private users: UsersService,
     private config: ConfigService,
   ) {
-    // Initialize Bedrock client
-    this.bedrockClient = new BedrockRuntimeClient({
-      region: this.config.get<string>('llm.region'),
-      credentials: {
-        accessKeyId: this.config.get<string>('llm.accessKeyId'),
-        secretAccessKey: this.config.get<string>('llm.secretAccessKey'),
-      },
-    });
+    const region = this.config.get<string>('llm.region') ?? 'us-east-1';
+    const accessKeyId = this.config.get<string>('llm.accessKeyId');
+    const secretAccessKey = this.config.get<string>('llm.secretAccessKey');
 
-    this.modelId = this.config.get<string>('llm.modelId');
-    this.systemPrompt = this.config.get<string>('llm.systemPrompt');
+    const clientConfig: BedrockRuntimeClientConfig = { region };
+
+    if (accessKeyId && secretAccessKey) {
+      clientConfig.credentials = { accessKeyId, secretAccessKey };
+    }
+
+    // Initialize Bedrock client
+    this.bedrockClient = new BedrockRuntimeClient(clientConfig);
+
+    this.modelId =
+      this.config.get<string>('llm.modelId') ??
+      'anthropic.claude-3-haiku-20240307-v1:0';
+    this.systemPrompt =
+      this.config.get<string>('llm.systemPrompt') ??
+      'Você é um assistente de análise de documentos.';
 
     this.logger.log(`✅ Bedrock LLM initialized: ${this.modelId}`);
   }
@@ -91,7 +100,7 @@ export class LlmService {
     const { answer, tokensUsed } = await this.invokeBedrock(prompt);
 
     // Save interaction
-    await this.prisma.llmInteraction.create({
+    await this.prisma.lLMInteraction.create({
       data: {
         documentId,
         userId,
@@ -113,7 +122,7 @@ export class LlmService {
    * Build prompt for Claude
    */
   private buildPrompt(documentText: string, question: string): string {
-    return `Você é um assistente de análise de documentos. Responda à pergunta do usuário com base APENAS no texto extraído do documento fornecido.
+    return `${this.systemPrompt}
 
 DOCUMENTO:
 ${documentText}
@@ -137,8 +146,10 @@ RESPOSTA:`;
     prompt: string,
   ): Promise<{ answer: string; tokensUsed: number }> {
     try {
-      const maxTokens = this.config.get<number>('llm.parameters.maxTokens');
-      const temperature = this.config.get<number>('llm.parameters.temperature');
+      const maxTokens =
+        this.config.get<number>('llm.parameters.maxTokens') ?? 1024;
+      const temperature =
+        this.config.get<number>('llm.parameters.temperature') ?? 0.2;
 
       // Prepare request for Claude 3
       const request = {
@@ -165,8 +176,12 @@ RESPOSTA:`;
       const response = await this.bedrockClient.send(command);
 
       // Parse response
+      if (!response.body) {
+        throw new Error('Empty response from Bedrock');
+      }
+
       const responseBody = JSON.parse(
-        new TextDecoder().decode(response.body),
+        new TextDecoder().decode(response.body as Uint8Array),
       );
 
       const answer = responseBody.content[0].text;

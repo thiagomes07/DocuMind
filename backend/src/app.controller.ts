@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, VERSION_NEUTRAL, Version } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Public } from './common/decorators/public.decorator';
 import { AppService } from './app.service';
@@ -54,6 +54,7 @@ export class AppController {
    */
   @Public()
   @Get('health')
+  @Version(VERSION_NEUTRAL)
   @ApiOperation({
     summary: 'Health check',
     description: 'Check if the API and its dependencies are running properly',
@@ -114,7 +115,7 @@ export class AppController {
       status,
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      environment: this.config.get<string>('app.nodeEnv'),
+      environment: this.config.get<string>('app.nodeEnv') ?? 'development',
       version: '1.0.0',
       services,
     };
@@ -126,6 +127,7 @@ export class AppController {
    */
   @Public()
   @Get('ready')
+  @Version(VERSION_NEUTRAL)
   @ApiOperation({
     summary: 'Readiness check',
     description: 'Check if the service is ready to accept requests',
@@ -154,6 +156,7 @@ export class AppController {
    */
   @Public()
   @Get('live')
+  @Version(VERSION_NEUTRAL)
   @ApiOperation({
     summary: 'Liveness check',
     description: 'Check if the service process is alive',

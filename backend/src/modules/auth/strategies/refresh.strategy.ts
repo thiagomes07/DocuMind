@@ -1,8 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PassportStrategy } from '@nestjs/strategy';
+import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import {
+  Strategy,
+  ExtractJwt,
+  StrategyOptionsWithRequest,
+} from 'passport-jwt';
 import { AuthService } from '../auth.service';
 import { JwtPayload } from '../dto/tokens.dto';
 
@@ -16,7 +20,12 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
     private authService: AuthService,
     private configService: ConfigService,
   ) {
-    super({
+    const refreshSecret = configService.get<string>('jwt.refreshSecret');
+    if (!refreshSecret) {
+      throw new Error('JWT refresh secret is not configured');
+    }
+
+    const strategyOptions: StrategyOptionsWithRequest = {
       // Extract JWT from cookie
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
@@ -28,9 +37,11 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('jwt.refreshSecret'),
+      secretOrKey: refreshSecret,
       passReqToCallback: true, // Pass request to validate method
-    });
+    };
+
+    super(strategyOptions);
   }
 
   /**

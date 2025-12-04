@@ -16,8 +16,8 @@ import {
   ApiBearerAuth,
   ApiCookieAuth,
 } from '@nestjs/swagger';
-import { Response } from 'express';
-import { User } from '@prisma/client';
+import type { Response } from 'express';
+import type { User } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, RegisterResponseDto } from './dto/register.dto';
