@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -74,7 +75,7 @@ import { configModules } from './config';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard, // Rate limiting (can be customized with @Throttle())
+      useClass: AppThrottlerGuard, // Rate limiting (skips health/ready/live)
     },
 
     // Global Exception Filters (order matters - specific to generic)

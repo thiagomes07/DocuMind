@@ -73,7 +73,7 @@ services:
       dockerfile: Dockerfile
       args:
         # Next.js precisa dessas vars no tempo de BUILD (npm run build)
-        NEXT_PUBLIC_API_URL: http://localhost:4000/api
+        NEXT_PUBLIC_API_URL: http://backend:4000/api/v1
         NEXT_PUBLIC_MAX_DOCUMENTS: ${MAX_DOCUMENTS_PER_USER}
         NEXT_PUBLIC_MAX_TOKENS: ${MAX_TOKENS_PER_USER}
         NEXT_PUBLIC_MAX_FILE_SIZE: ${MAX_FILE_SIZE_MB}
@@ -83,6 +83,11 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
+      HOST: 0.0.0.0
+      NEXT_PUBLIC_API_URL: http://backend:4000/api/v1
+      NEXT_PUBLIC_MAX_DOCUMENTS: ${MAX_DOCUMENTS_PER_USER}
+      NEXT_PUBLIC_MAX_TOKENS: ${MAX_TOKENS_PER_USER}
+      NEXT_PUBLIC_MAX_FILE_SIZE: ${MAX_FILE_SIZE_MB}
     depends_on:
       backend:
         condition: service_healthy

@@ -11,6 +11,57 @@ import {
 import { AppError, ErrorCode, ERROR_MESSAGES } from '@/types/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const DOCUMENTS_CACHE_TTL = 10_000; // 10s cache window per user/page to avoid API bursts
+
+type DocumentsCacheEntry = {
+  data: GetDocumentsResponse;
+  expiresAt: number;
+};
+
+const documentsCache = new Map<string, DocumentsCacheEntry>();
+
+const unwrapApiResponse = <T>(payload: any): T => {
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return payload.data as T;
+  }
+  return payload as T;
+};
+
+const buildDocumentsCacheKey = (
+  token: string,
+  page: number,
+  limit: number
+) => `${token}:${page}:${limit}`;
+
+const getCachedDocuments = (key: string): GetDocumentsResponse | null => {
+  const entry = documentsCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    documentsCache.delete(key);
+    return null;
+  }
+  return entry.data;
+};
+
+const setCachedDocuments = (key: string, data: GetDocumentsResponse) => {
+  documentsCache.set(key, {
+    data,
+    expiresAt: Date.now() + DOCUMENTS_CACHE_TTL,
+  });
+};
+
+const invalidateDocumentsCache = (token?: string) => {
+  if (!token) {
+    documentsCache.clear();
+    return;
+  }
+
+  for (const key of documentsCache.keys()) {
+    if (key.startsWith(`${token}:`)) {
+      documentsCache.delete(key);
+    }
+  }
+};
 
 /**
  * Fetch documents with pagination
@@ -36,6 +87,12 @@ export async function fetchDocumentsAction(
       };
     }
 
+    const cacheKey = buildDocumentsCacheKey(accessToken, page, limit);
+    const cached = getCachedDocuments(cacheKey);
+    if (cached) {
+      return { data: cached };
+    }
+
     const response = await fetch(
       `${API_URL}/documents?page=${page}&limit=${limit}`,
       {
@@ -57,7 +114,9 @@ export async function fetchDocumentsAction(
       };
     }
 
-    const data: GetDocumentsResponse = await response.json();
+    const payload = await response.json();
+    const data = unwrapApiResponse<GetDocumentsResponse>(payload);
+    setCachedDocuments(cacheKey, data);
     return { data };
   } catch (error) {
     console.error('Fetch documents error:', error);
@@ -125,6 +184,8 @@ export async function uploadDocumentAction(
       };
     }
 
+    invalidateDocumentsCache(accessToken);
+
     // Revalidate documents page to show new upload
     revalidatePath('/documentos');
 
@@ -184,6 +245,8 @@ export async function deleteDocumentAction(
 
     const data: DeleteDocumentResponse = await response.json();
 
+    invalidateDocumentsCache(accessToken);
+
     // Revalidate documents page to remove deleted document
     revalidatePath('/documentos');
 
@@ -210,6 +273,16 @@ export async function getDocumentAction(
   error?: AppError;
 }> {
   try {
+    if (!documentId) {
+      return {
+        error: {
+          type: 'business',
+          message: ERROR_MESSAGES[ErrorCode.DOCUMENT_NOT_FOUND],
+          code: ErrorCode.DOCUMENT_NOT_FOUND,
+        },
+      };
+    }
+
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('access_token')?.value;
 
@@ -252,7 +325,8 @@ export async function getDocumentAction(
       };
     }
 
-    const data: DocumentDetail = await response.json();
+    const payload = await response.json();
+    const data = unwrapApiResponse<DocumentDetail>(payload);
     return { data };
   } catch (error) {
     console.error('Get document error:', error);

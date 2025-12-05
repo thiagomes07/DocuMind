@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchDocumentsAction } from '@/lib/actions/documents';
-import { getSessionAction } from '@/lib/actions/auth';
+import { getAccessToken } from '@/lib/auth/token-manager';
 import { DocumentList } from '@/components/document/document-list';
 import { UploadForm } from '@/components/forms/upload-form';
 import { Upload, FileText } from 'lucide-react';
@@ -12,19 +12,20 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }
 
 export default async function DocumentosPage({ searchParams }: PageProps) {
   // Check authentication
-  const session = await getSessionAction();
-  
-  if (!session) {
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) {
     redirect('/login');
   }
 
   // Get pagination params
-  const page = parseInt(searchParams.page || '1', 10);
+  const { page: pageParam } = await searchParams;
+  const page = parseInt(pageParam || '1', 10);
   const limit = 9;
 
   // Fetch documents

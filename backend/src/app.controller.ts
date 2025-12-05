@@ -4,6 +4,7 @@ import { Public } from './common/decorators/public.decorator';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { SkipThrottle } from '@nestjs/throttler';
 
 /**
  * Health Check Response
@@ -53,6 +54,7 @@ export class AppController {
    * Used by Docker, Kubernetes, and load balancers
    */
   @Public()
+  @SkipThrottle()
   @Get('health')
   @Version(VERSION_NEUTRAL)
   @ApiOperation({
@@ -126,6 +128,7 @@ export class AppController {
    * Checks if the service is ready to accept traffic
    */
   @Public()
+  @SkipThrottle()
   @Get('ready')
   @Version(VERSION_NEUTRAL)
   @ApiOperation({
@@ -155,6 +158,7 @@ export class AppController {
    * Simple check that the process is alive
    */
   @Public()
+  @SkipThrottle()
   @Get('live')
   @Version(VERSION_NEUTRAL)
   @ApiOperation({

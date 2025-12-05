@@ -126,6 +126,7 @@ export class DocumentsController {
   // ==================== LIST DOCUMENTS ====================
 
   @Get()
+  @Throttle({ default: { limit: 120, ttl: 60000 } }) // Allow heavier listing traffic (120 req/min)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'List user documents',

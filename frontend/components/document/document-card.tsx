@@ -53,24 +53,25 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
       icon: Clock,
       label: 'Processando',
       color: 'text-[var(--warning-500)]',
-      bg: 'bg-[var(--warning-500)]/10',
+      border: 'border-[var(--warning-500)]',
     },
     COMPLETED: {
       icon: CheckCircle2,
-      label: 'Concluído',
+      label: 'Concluido',
       color: 'text-[var(--success-500)]',
-      bg: 'bg-[var(--success-500)]/10',
+      border: 'border-[var(--success-500)]',
     },
     ERROR: {
       icon: AlertCircle,
       label: 'Erro',
       color: 'text-[var(--error-500)]',
-      bg: 'bg-[var(--error-500)]/10',
+      border: 'border-[var(--error-500)]',
     },
   };
 
   const status = statusConfig[document.status];
   const StatusIcon = status.icon;
+  const isProcessing = document.status === 'PROCESSING';
 
   return (
     <div className="group relative rounded-xl border border-[var(--border-color)] bg-white shadow-sm hover:shadow-md transition-all duration-200">
@@ -95,8 +96,8 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
         {/* Status Badge */}
         <div
           className={cn(
-            'absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-            status.bg,
+            'absolute top-3 border-2 bg-black/50 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-bold',
+            status.border,
             status.color
           )}
         >
@@ -122,22 +123,16 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
         {/* Actions */}
         <div className="flex gap-2">
           <Link
+            prefetch={false}
             href={`/documentos/${document.id}`}
             className="flex-1"
-            aria-disabled={document.status === 'PROCESSING'}
-            onClick={(e) => {
-              if (document.status === 'PROCESSING') {
-                e.preventDefault();
-                toast.info('Aguarde o processamento do documento');
+            onClick={() => {
+              if (isProcessing) {
+                toast.info('Documento ainda esta processando, mas ja e possivel visualizar os detalhes disponiveis.');
               }
             }}
           >
-            <Button
-              variant="primary"
-              size="sm"
-              fullWidth
-              disabled={document.status === 'PROCESSING'}
-            >
+            <Button variant="primary" size="sm" fullWidth>
               <Eye className="h-4 w-4" />
               Ver
             </Button>
@@ -169,7 +164,7 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
               Confirmar exclusão
             </h3>
             <p className="text-sm text-[var(--gray-600)] mb-6">
-              Tem certeza que deseja deletar este documento? Esta ação não pode
+              Tem certeza que deseja deletar este documento? Esta acao nao pode
               ser desfeita.
             </p>
             <div className="flex gap-3">

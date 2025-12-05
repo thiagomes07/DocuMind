@@ -85,12 +85,7 @@
 }
 
 /* Remove default margin apenas em elementos específicos */
-body,
-h1, h2, h3, h4, h5, h6,
-p,
-figure,
-blockquote,
-dl, dd {
+body{
   margin: 0;
 }
 

@@ -9,6 +9,8 @@ import Link from 'next/link';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, isLoading, logout } = useAuth();
+  const formatNumber = (value?: number) =>
+    Number(value ?? 0).toLocaleString('pt-BR');
 
   if (isLoading) {
     return (
@@ -85,12 +87,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <div className="flex items-center gap-6 text-xs text-[var(--gray-500)]">
                 <div>
                   <span className="font-medium">Documentos:</span>{' '}
-                  {user.documentsCount}/{user.documentsLimit}
+                  {formatNumber(user.documentsCount)}/
+                  {formatNumber(user.documentsLimit)}
                 </div>
                 <div>
                   <span className="font-medium">Tokens:</span>{' '}
-                  {user.tokensUsed.toLocaleString()}/
-                  {user.tokensLimit.toLocaleString()}
+                  {formatNumber(user.tokensUsed)}/
+                  {formatNumber(user.tokensLimit)}
                 </div>
               </div>
             )}

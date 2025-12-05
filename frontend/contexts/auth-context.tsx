@@ -15,7 +15,6 @@ import {
   loginAction,
   registerAction,
   logoutAction,
-  getSessionAction,
 } from '@/lib/actions/auth';
 import { useToast } from './toast-context';
 
@@ -31,29 +30,97 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const SESSION_API_ENDPOINT = '/api/auth/session';
+const SESSION_CACHE_TTL = 15000; // 15s cache to avoid hammering the backend
+
+let inFlightSessionRequest: Promise<SessionData | null> | null = null;
+let sessionCache: SessionData | null = null;
+let lastSessionFetch = 0;
+
+const primeSessionCache = (data: SessionData | null) => {
+  sessionCache = data;
+  lastSessionFetch = Date.now();
+};
+
+const requestSession = async () => {
+  try {
+    const response = await fetch(SESSION_API_ENDPOINT, {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      primeSessionCache(null);
+      return null;
+    }
+
+    const data: SessionData = await response.json();
+    primeSessionCache(data);
+    return data;
+  } catch (error) {
+    console.error('Session fetch error:', error);
+    return sessionCache;
+  } finally {
+    inFlightSessionRequest = null;
+  }
+};
+
+async function fetchSession(force = false): Promise<SessionData | null> {
+  const now = Date.now();
+
+  if (!force && sessionCache && now - lastSessionFetch < SESSION_CACHE_TTL) {
+    return sessionCache;
+  }
+
+  if (!inFlightSessionRequest || force) {
+    inFlightSessionRequest = requestSession();
+  }
+
+  return inFlightSessionRequest;
+}
+
+type AuthProviderProps = {
+  children: ReactNode;
+  initialUser?: SessionData | null;
+};
+
+type LoadSessionOptions = {
+  force?: boolean;
+  silent?: boolean;
+};
+
+export function AuthProvider({ children, initialUser }: AuthProviderProps) {
+  const [user, setUser] = useState<SessionData | null>(initialUser ?? null);
+  const [isLoading, setIsLoading] = useState(initialUser === undefined);
   const router = useRouter();
   const toast = useToast();
 
-  // Load session on mount
-  useEffect(() => {
-    loadSession();
-  }, []);
-
-  const loadSession = async () => {
+  const loadSession = useCallback(async ({ force = false, silent = false }: LoadSessionOptions = {}) => {
     try {
-      setIsLoading(true);
-      const sessionData = await getSessionAction();
+      if (!silent) {
+        setIsLoading(true);
+      }
+      const sessionData = await fetchSession(force);
       setUser(sessionData);
     } catch (error) {
       console.error('Failed to load session:', error);
       setUser(null);
     } finally {
+      if (!silent) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof initialUser === 'undefined') {
+      loadSession({ force: true });
+    } else {
+      primeSessionCache(initialUser ?? null);
       setIsLoading(false);
     }
-  };
+  }, [initialUser, loadSession]);
 
   const login = useCallback(
     async (data: LoginRequest) => {
@@ -63,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (result.success) {
           // Reload session to get user data
-          await loadSession();
+          await loadSession({ force: true });
           toast.success('Login realizado com sucesso!');
           router.push('/documentos');
           return { success: true };
@@ -120,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       await logoutAction();
       setUser(null);
+      primeSessionCache(null);
       toast.info('Você foi desconectado');
     } catch (error) {
       console.error('Logout error:', error);
@@ -132,8 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router, toast]);
 
   const refreshSession = useCallback(async () => {
-    await loadSession();
-  }, []);
+    await loadSession({ force: true, silent: true });
+  }, [loadSession]);
 
   const value: AuthContextValue = {
     user,

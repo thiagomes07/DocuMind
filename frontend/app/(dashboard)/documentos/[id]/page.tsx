@@ -1,17 +1,28 @@
 import { Metadata } from 'next';
 import { redirect, notFound } from 'next/navigation';
 import { getDocumentAction, deleteDocumentAction } from '@/lib/actions/documents';
-import { getSessionAction } from '@/lib/actions/auth';
+import { getAccessToken } from '@/lib/auth/token-manager';
 import { DocumentViewer } from '@/components/document/document-viewer';
 import { Spinner } from '@/components/ui/loading';
 import { AlertCircle } from 'lucide-react';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id?: string }>;
 }
 
+const DEFAULT_METADATA: Metadata = {
+  title: 'Documento | DocuMind',
+  description: 'Visualize e analise documentos com IA',
+};
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const result = await getDocumentAction(params.id);
+  const { id: documentId } = await params;
+
+  if (!documentId) {
+    return DEFAULT_METADATA;
+  }
+
+  const result = await getDocumentAction(documentId);
 
   if (result.data) {
     return {
@@ -20,22 +31,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  return {
-    title: 'Documento | DocuMind',
-    description: 'Visualize e analise documentos com IA',
-  };
+  return DEFAULT_METADATA;
 }
 
 export default async function DocumentDetailPage({ params }: PageProps) {
-  // Check authentication
-  const session = await getSessionAction();
+  const { id: documentId } = await params;
 
-  if (!session) {
+  if (!documentId) {
+    notFound();
+  }
+  const ensuredDocumentId = documentId as string;
+
+  // Check authentication
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) {
     redirect('/login');
   }
 
   // Fetch document details
-  const result = await getDocumentAction(params.id);
+  const result = await getDocumentAction(ensuredDocumentId);
 
   // Handle errors
   if (result.error) {
@@ -77,7 +92,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   // Handle delete
   async function handleDelete() {
     'use server';
-    await deleteDocumentAction(params.id);
+    await deleteDocumentAction(ensuredDocumentId);
     redirect('/documentos');
   }
 

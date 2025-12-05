@@ -65,12 +65,17 @@ export function RegisterForm() {
     } catch (error: any) {
       if (error.name === 'ZodError') {
         const fieldErrors: Partial<Record<keyof RegisterFormData, string>> = {};
-        error.errors.forEach((err: any) => {
-          const field = err.path[0] as keyof RegisterFormData;
+
+        // Zod exposes issues on `issues` in some versions; fall back to that to avoid crashes.
+        const issues = error.errors ?? error.issues ?? [];
+
+        issues.forEach((err: any) => {
+          const field = err.path?.[0] as keyof RegisterFormData;
           if (field) {
             fieldErrors[field] = err.message;
           }
         });
+
         setErrors(fieldErrors);
       } else {
         toast.error('Erro ao criar conta. Tente novamente.');

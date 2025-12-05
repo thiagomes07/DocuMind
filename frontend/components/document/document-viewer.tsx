@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { DocumentDetail } from '@/types/document';
-import { useToast } from '@/contexts/toast-context';
-import { useAuth } from '@/contexts/auth-context';
-import { askQuestionAction } from '@/lib/actions/llm';
-import { Button } from '@/components/ui/button';
-import { Spinner, DotsLoader } from '@/components/ui/loading';
-import { cn, formatDate } from '@/lib/utils';
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { DocumentDetail } from "@/types/document";
+import { useToast } from "@/contexts/toast-context";
+import { useAuth } from "@/contexts/auth-context";
+import { askQuestionAction } from "@/lib/actions/llm";
+import { Button } from "@/components/ui/button";
+import { Spinner, DotsLoader } from "@/components/ui/loading";
+import { cn, formatDate } from "@/lib/utils";
 import {
   ArrowLeft,
   Copy,
@@ -20,7 +20,7 @@ import {
   MessageSquare,
   FileText,
   Sparkles,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface DocumentViewerProps {
   document: DocumentDetail;
@@ -29,7 +29,7 @@ interface DocumentViewerProps {
 
 interface ChatMessage {
   id: string;
-  type: 'user' | 'assistant';
+  type: "user" | "assistant";
   content: string;
   tokensUsed?: number;
   timestamp: Date;
@@ -37,11 +37,12 @@ interface ChatMessage {
 
 export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isAsking, setIsAsking] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
@@ -55,13 +56,13 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
       document.llmInteractions.forEach((interaction) => {
         loadedMessages.push({
           id: `${interaction.id}-q`,
-          type: 'user',
+          type: "user",
           content: interaction.question,
           timestamp: new Date(interaction.createdAt),
         });
         loadedMessages.push({
           id: `${interaction.id}-a`,
-          type: 'assistant',
+          type: "assistant",
           content: interaction.answer,
           tokensUsed: interaction.tokensUsed,
           timestamp: new Date(interaction.createdAt),
@@ -73,13 +74,13 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
 
   // Auto-scroll to bottom when new message arrives
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [inputValue]);
@@ -88,10 +89,69 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
     try {
       await navigator.clipboard.writeText(document.extractedText);
       setCopiedText(true);
-      toast.success('Texto copiado!');
+      toast.success("Texto copiado!");
       setTimeout(() => setCopiedText(false), 2000);
     } catch {
-      toast.error('Erro ao copiar texto');
+      toast.error("Erro ao copiar texto");
+    }
+  };
+
+  const handleDownload = async () => {
+    if (isDownloading) return;
+
+    const isReady = document.status === "COMPLETED";
+    if (!isReady) {
+      toast.error("Documento ainda está sendo processado");
+      return;
+    }
+
+    try {
+      setIsDownloading(true);
+
+      const response = await fetch(`/api/documents/${document.id}/download`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        let message = "Erro ao baixar PDF";
+        try {
+          const payload = await response.json();
+          message = payload?.message || message;
+        } catch {
+          // ignore JSON parse issues
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const anchor = window.document.createElement("a");
+      const defaultName =
+        document.filename?.replace(/\.[^/.]+$/, "") || "documento";
+      const disposition = response.headers.get("content-disposition");
+      let filename = `${defaultName}-ocr.pdf`;
+
+      if (disposition) {
+        const match = /filename="?([^";]+)"?/i.exec(disposition);
+        if (match?.[1]) {
+          filename = match[1];
+        }
+      }
+
+      anchor.href = url;
+      anchor.download = filename;
+      window.document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Download iniciado!");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Erro ao baixar PDF";
+      toast.error(message);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -99,13 +159,13 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
     if (!inputValue.trim() || isAsking) return;
 
     const question = inputValue.trim();
-    setInputValue('');
+    setInputValue("");
     setIsAsking(true);
 
     // Add user message immediately
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      type: 'user',
+      type: "user",
       content: question,
       timestamp: new Date(),
     };
@@ -122,7 +182,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
         // Add assistant response
         const assistantMessage: ChatMessage = {
           id: `assistant-${Date.now()}`,
-          type: 'assistant',
+          type: "assistant",
           content: result.data.answer,
           tokensUsed: result.data.tokensUsed,
           timestamp: new Date(),
@@ -133,7 +193,8 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
         await refreshSession();
       }
     } catch (error) {
-      toast.error('Erro ao processar pergunta');
+      console.error("Ask question error:", error);
+      toast.error("Erro ao processar pergunta");
       setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
     } finally {
       setIsAsking(false);
@@ -141,7 +202,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleAskQuestion();
     }
@@ -153,12 +214,13 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
   const tokensPercentage = (tokensUsed / tokensLimit) * 100;
   const tokensColor =
     tokensPercentage >= 90
-      ? 'text-[var(--error-500)]'
+      ? "text-[var(--error-500)]"
       : tokensPercentage >= 70
-      ? 'text-[var(--warning-500)]'
-      : 'text-[var(--success-500)]';
+      ? "text-[var(--warning-500)]"
+      : "text-[var(--success-500)]";
 
   const isTokenLimitReached = tokensUsed >= tokensLimit;
+  const canDownload = document.status === "COMPLETED";
 
   return (
     <div className="h-full flex flex-col">
@@ -169,7 +231,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push('/documentos')}
+              onClick={() => router.push("/documentos")}
             >
               <ArrowLeft className="h-4 w-4" />
               Voltar
@@ -184,7 +246,16 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" disabled>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleDownload()}
+              disabled={!canDownload}
+              isLoading={isDownloading}
+              title={
+                !canDownload ? "Disponível após conclusão do OCR" : undefined
+              }
+            >
               <Download className="h-4 w-4" />
               Download PDF
             </Button>
@@ -203,7 +274,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
       <div className="flex-1 overflow-hidden">
         <div className="h-full grid lg:grid-cols-2 gap-6 p-6">
           {/* Left Panel - Extracted Text */}
-          <div className="flex flex-col bg-white rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden">
+          <div className="flex flex-col bg-white rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden h-[calc(100vh-200px)]">
             <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-[var(--primary-500)]" />
@@ -222,7 +293,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
-                {copiedText ? 'Copiado!' : 'Copiar'}
+                {copiedText ? "Copiado!" : "Copiar"}
               </Button>
             </div>
 
@@ -254,8 +325,8 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                   Assistente IA
                 </h2>
               </div>
-              <div className={cn('text-sm font-medium', tokensColor)}>
-                {tokensUsed.toLocaleString()} / {tokensLimit.toLocaleString()}{' '}
+              <div className={cn("text-sm font-medium", tokensColor)}>
+                {tokensUsed.toLocaleString()} / {tokensLimit.toLocaleString()}{" "}
                 tokens
               </div>
             </div>
@@ -270,7 +341,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                       Limite de tokens atingido
                     </p>
                     <p className="text-xs text-[var(--gray-600)] mt-1">
-                      Você atingiu o limite de {tokensLimit.toLocaleString()}{' '}
+                      Você atingiu o limite de {tokensLimit.toLocaleString()}{" "}
                       tokens. Não é possível fazer novas perguntas.
                     </p>
                   </div>
@@ -279,7 +350,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="overflow-y-auto p-4 space-y-4 flex-1 min-h-0">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <div className="w-16 h-16 rounded-full bg-[var(--primary-500)]/10 flex items-center justify-center mb-4">
@@ -295,7 +366,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                   <div className="space-y-2 w-full max-w-sm">
                     <button
                       onClick={() =>
-                        setInputValue('Resuma os pontos principais do texto')
+                        setInputValue("Resuma os pontos principais do texto")
                       }
                       className="w-full text-left px-4 py-2 rounded-lg border border-[var(--gray-300)] hover:bg-[var(--gray-50)] transition-colors text-sm text-[var(--gray-700)]"
                       disabled={!document.extractedText || isTokenLimitReached}
@@ -304,7 +375,9 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                     </button>
                     <button
                       onClick={() =>
-                        setInputValue('Quais são as informações mais importantes?')
+                        setInputValue(
+                          "Quais são as informações mais importantes?"
+                        )
                       }
                       className="w-full text-left px-4 py-2 rounded-lg border border-[var(--gray-300)] hover:bg-[var(--gray-50)] transition-colors text-sm text-[var(--gray-700)]"
                       disabled={!document.extractedText || isTokenLimitReached}
@@ -319,16 +392,18 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                     <div
                       key={message.id}
                       className={cn(
-                        'flex gap-3',
-                        message.type === 'user' ? 'justify-end' : 'justify-start'
+                        "flex gap-3",
+                        message.type === "user"
+                          ? "justify-end"
+                          : "justify-start"
                       )}
                     >
                       <div
                         className={cn(
-                          'max-w-[80%] rounded-lg p-3',
-                          message.type === 'user'
-                            ? 'bg-[var(--primary-500)] text-white'
-                            : 'bg-[var(--gray-100)] text-[var(--gray-900)]'
+                          "max-w-[80%] rounded-lg p-3",
+                          message.type === "user"
+                            ? "bg-[var(--primary-500)] text-white"
+                            : "bg-[var(--gray-100)] text-[var(--gray-900)]"
                         )}
                       >
                         <p className="text-sm whitespace-pre-wrap">
@@ -364,10 +439,10 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                   onKeyPress={handleKeyPress}
                   placeholder={
                     !document.extractedText
-                      ? 'Aguarde o processamento do OCR...'
+                      ? "Aguarde o processamento do OCR..."
                       : isTokenLimitReached
-                      ? 'Limite de tokens atingido'
-                      : 'Digite sua pergunta... (Enter para enviar)'
+                      ? "Limite de tokens atingido"
+                      : "Digite sua pergunta... (Enter para enviar)"
                   }
                   disabled={
                     !document.extractedText || isAsking || isTokenLimitReached

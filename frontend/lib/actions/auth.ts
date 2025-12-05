@@ -11,9 +11,16 @@ import {
   LogoutResponse,
 } from '@/types/auth';
 import { AppError, ErrorCode } from '@/types/api';
-import { loginSchema, registerSchema } from '@/lib/validations/auth';
+import { registerSchema } from '@/lib/validations/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+const unwrapApiResponse = <T>(payload: any): T => {
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return payload.data as T;
+  }
+  return payload as T;
+};
 
 /**
  * Login action
@@ -23,16 +30,13 @@ export async function loginAction(data: LoginRequest): Promise<{
   error?: AppError;
 }> {
   try {
-    // Validate input
-    const validated = loginSchema.parse(data);
-
     // Call backend API
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(validated),
+      body: JSON.stringify(data),
       credentials: 'include',
     });
 
@@ -212,8 +216,13 @@ export async function getSessionAction(): Promise<SessionData | null> {
       return null;
     }
 
-    const sessionData: SessionData = await response.json();
-    return sessionData;
+    const payload = await response.json().catch(() => null);
+    if (!payload) {
+      return null;
+    }
+
+    const sessionData = unwrapApiResponse<SessionData | null>(payload);
+    return sessionData ?? null;
   } catch (error) {
     console.error('Get session error:', error);
     return null;

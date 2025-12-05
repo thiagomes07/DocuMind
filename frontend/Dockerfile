@@ -42,6 +42,7 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
 
 # Copiar apenas o necessário
 COPY --from=builder /app/public ./public
@@ -57,9 +58,9 @@ USER nextjs
 # Expor porta
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
-  CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+# Health check: accept any <400 status to avoid failing on redirects
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
+  CMD node -e "require('http').get({host:'localhost',port:3000,path:'/api/health',timeout:4000},(r)=>{r.resume();process.exit(r.statusCode < 400 ? 0 : 1)}).on('error',()=>process.exit(1))"
 
 # Comando para iniciar
 CMD ["node", "server.js"]

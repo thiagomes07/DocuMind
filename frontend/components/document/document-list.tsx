@@ -1,12 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { DocumentListItem } from '@/types/document';
-import { DocumentCard } from './document-card';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Pagination } from '@/components/ui/pagination';
-import { FileText, Upload } from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { DocumentListItem } from "@/types/document";
+import { DocumentCard } from "./document-card";
+import { Pagination } from "@/components/ui/pagination";
+import { FileText } from "lucide-react";
 
 interface DocumentListProps {
   initialDocuments: DocumentListItem[];
@@ -21,7 +19,7 @@ export function DocumentList({
   initialPage,
   totalPages,
 }: DocumentListProps) {
-  const [documents] = useState(initialDocuments);
+  const documents = initialDocuments ?? [];
   const router = useRouter();
 
   const handlePageChange = (page: number) => {
@@ -35,20 +33,14 @@ export function DocumentList({
 
   if (documents.length === 0) {
     return (
-      <EmptyState
-        icon={<FileText className="h-16 w-16" />}
-        title="Nenhum documento ainda"
-        description="Faça upload do seu primeiro documento para começar a extrair texto e fazer perguntas com IA"
-        action={{
-          label: 'Upload Documento',
-          onClick: () => {
-            // Scroll to upload form
-            document.getElementById('upload-form')?.scrollIntoView({
-              behavior: 'smooth',
-            });
-          },
-        }}
-      />
+      <div className="flex flex-col items-center gap-2 text-center">
+        <FileText className="h-16 w-16" />
+        <p className="text-lg font-bold">Nenhum documento ainda</p>
+        <p className="text-sm text-gray-600">
+          Faça upload do seu primeiro documento para começar a extrair texto e
+          fazer perguntas com IA
+        </p>
+      </div>
     );
   }
 
@@ -79,7 +71,7 @@ export function DocumentList({
       {/* Total Count */}
       <div className="text-center text-sm text-[var(--gray-500)]">
         Mostrando {documents.length} de {initialTotal} documento
-        {initialTotal !== 1 ? 's' : ''}
+        {initialTotal !== 1 ? "s" : ""}
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/contexts/toast-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { loginSchema, LoginFormData } from '@/lib/validations/auth';
+import { LoginFormData } from '@/lib/validations/auth';
 import { LogIn, ArrowRight } from 'lucide-react';
 
 export function LoginForm() {
@@ -14,7 +14,6 @@ export function LoginForm() {
     email: '',
     password: '',
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login } = useAuth();
@@ -24,36 +23,20 @@ export function LoginForm() {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
     setIsSubmitting(true);
 
     try {
-      const validated = loginSchema.parse(formData);
-      const result = await login(validated);
+      const result = await login(formData);
 
       if (!result.success && result.error) {
         toast.error(result.error.message);
       }
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        const fieldErrors: Partial<Record<keyof LoginFormData, string>> = {};
-        error.errors.forEach((err: any) => {
-          const field = err.path[0] as keyof LoginFormData;
-          if (field) {
-            fieldErrors[field] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        toast.error('Erro ao fazer login. Tente novamente.');
-      }
+    } catch (error) {
+      toast.error('Erro ao fazer login. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -64,11 +47,9 @@ export function LoginForm() {
       <div className="space-y-5">
         <Input
           label="Email"
-          type="email"
           placeholder="seu@email.com"
           value={formData.email}
           onChange={handleChange('email')}
-          error={errors.email}
           disabled={isSubmitting}
           autoComplete="email"
           autoFocus
@@ -76,11 +57,9 @@ export function LoginForm() {
 
         <Input
           label="Senha"
-          type="password"
           placeholder="Digite sua senha"
           value={formData.password}
           onChange={handleChange('password')}
-          error={errors.password}
           disabled={isSubmitting}
           autoComplete="current-password"
         />

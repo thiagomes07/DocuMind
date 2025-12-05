@@ -9,8 +9,7 @@ export const loginSchema = z.object({
     .min(1, 'Email é obrigatório')
     .email('Email inválido'),
   password: z
-    .string()
-    .min(8, 'Senha deve ter no mínimo 8 caracteres'),
+    .string(),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

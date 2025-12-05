@@ -62,6 +62,5 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD node -e "require('http').get('http://localhost:4000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Comando de inicialização
-# Nota: O migrate deploy deve idealmente rodar em um job separado ou init container em K8s,
-# mas para Docker Compose funciona bem aqui.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# Se houver migrations, roda migrate deploy; caso contrário, faz db push para criar o schema.
+CMD ["sh", "-c", "if [ -d prisma/migrations ] && [ \"$(ls -A prisma/migrations)\" ]; then npx prisma migrate deploy; else npx prisma db push; fi && node dist/main.js"]

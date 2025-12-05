@@ -329,13 +329,17 @@ export class DocumentsService {
       }
 
       // Footer
-      const pages = doc.bufferedPageRange();
-      for (let i = 0; i < pages.count; i++) {
-        doc.switchToPage(i);
+      const pageRange = doc.bufferedPageRange();
+      for (
+        let pageIndex = pageRange.start;
+        pageIndex < pageRange.start + pageRange.count;
+        pageIndex++
+      ) {
+        doc.switchToPage(pageIndex);
         doc
           .fontSize(8)
           .text(
-            `Página ${i + 1} de ${pages.count}`,
+            `Página ${pageIndex - pageRange.start + 1} de ${pageRange.count}`,
             50,
             doc.page.height - 50,
             { align: 'center' },
