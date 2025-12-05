@@ -80,7 +80,7 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
         {document.thumbnailUrl ? (
           <img
             src={document.thumbnailUrl}
-            alt={document.filename}
+            alt={document.originalName}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -111,9 +111,9 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
         <div>
           <h3
             className="font-medium text-[var(--gray-900)] truncate"
-            title={document.filename}
+            title={document.originalName}
           >
-            {document.filename}
+            {document.originalName}
           </h3>
           <p className="text-sm text-[var(--gray-500)] mt-1">
             {formatDate(document.uploadedAt)}

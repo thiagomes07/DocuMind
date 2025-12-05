@@ -9,6 +9,7 @@ export type DocumentStatus = 'PROCESSING' | 'COMPLETED' | 'ERROR';
 export interface DocumentListItem {
   id: string;
   filename: string;
+  originalName: string;
   uploadedAt: string;
   status: DocumentStatus;
   thumbnailUrl?: string;

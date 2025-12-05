@@ -151,6 +151,7 @@ export class DocumentsController {
       documents: result.documents.map((doc) => ({
         id: doc.id,
         filename: doc.filename,
+        originalName: doc.originalName,
         uploadedAt: doc.uploadedAt,
         status: doc.status,
         thumbnailUrl: (doc as any).thumbnailUrl,
@@ -280,20 +281,21 @@ export class DocumentsController {
   ): Promise<void> {
     this.logger.log(`📥 Downloading PDF: ${documentId}`);
 
-    const pdfBuffer = await this.documentsService.downloadPdf(
+    const { buffer, originalName } = await this.documentsService.downloadPdf(
       documentId,
       userId,
     );
 
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `document-${timestamp}.pdf`;
+    // Use original filename, replace extension with .pdf
+    const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
+    const filename = `${nameWithoutExt}.pdf`;
 
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${filename}"`,
-      'Content-Length': pdfBuffer.length,
+      'Content-Length': buffer.length,
     });
 
-    res.send(pdfBuffer);
+    res.send(buffer);
   }
 }

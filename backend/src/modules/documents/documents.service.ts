@@ -236,9 +236,12 @@ export class DocumentsService {
   }
 
   /**
-   * Download document as PDF with extracted text and chat history
+   * Download document as PDF
    */
-  async downloadPdf(documentId: string, userId: string): Promise<Buffer> {
+  async downloadPdf(
+    documentId: string,
+    userId: string,
+  ): Promise<{ buffer: Buffer; originalName: string }> {
     const document = await this.findOne(documentId, userId);
 
     if (document.status !== DocumentStatus.COMPLETED) {
@@ -249,7 +252,8 @@ export class DocumentsService {
 
     this.logger.log(`📄 Generating PDF for document: ${documentId}`);
 
-    return this.generatePdf(document);
+    const buffer = await this.generatePdf(document);
+    return { buffer, originalName: document.originalName };
   }
 
   /**

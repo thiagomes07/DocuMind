@@ -249,7 +249,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
             </Button>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-semibold text-[var(--gray-900)] truncate">
-                {document.filename}
+                {document.originalName}
               </h1>
               <p className="text-sm text-[var(--gray-500)]">
                 {formatDate(document.uploadedAt)}
