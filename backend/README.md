@@ -10,7 +10,9 @@
 - **Blob Storage**: AWS S3
 - **Autenticação**: JWT (Access + Refresh Tokens)
 - **Criptografia**: Argon2id com salt e pepper
-- **OCR**: Tesseract.js (open-source)
+- **OCR**: 
+  - **Imagens**: Tesseract.js (gratuito, open-source)
+  - **PDFs**: AWS Textract (pago, alta qualidade)
 - **LLM**: AWS Bedrock Claude 3 Haiku
 - **Documentação**: Swagger/OpenAPI
 
@@ -33,9 +35,20 @@
    │ Docker  │ │
    └─────────┘ │
                │
-        ┌──────▼─────────┐
-        │  AWS S3 Bucket │
-        └────────────────┘
+        ┌──────▼─────────────────┐
+        │    AWS Services        │
+        │  ┌──────────────────┐  │
+        │  │   S3 Bucket      │  │
+        │  └──────────────────┘  │
+        │  ┌──────────────────┐  │
+        │  │   Textract       │  │
+        │  │  (OCR - PDFs)    │  │
+        │  └──────────────────┘  │
+        │  ┌──────────────────┐  │
+        │  │   Bedrock        │  │
+        │  │ (Claude Haiku)   │  │
+        │  └──────────────────┘  │
+        └────────────────────────┘
 ```
 
 ### Componentes Principais
@@ -62,6 +75,15 @@
 - Bucket único multi-ambiente
 - Prefixos: `dev/`, `prod/`
 - Signed URLs (1h expiração)
+
+**AWS Textract**
+- OCR com IA para PDFs
+- Detecta tabelas, formulários e layout
+- Maior qualidade vs. Tesseract
+
+**AWS Bedrock**
+- Claude 3 Haiku para análise de documentos
+- Gerenciamento de tokens por usuário
 
 ---
 
@@ -94,7 +116,9 @@ src/
 │   │   ├── documents.service.ts
 │   │   ├── dto/
 │   │   └── processors/
-│   │       └── ocr.processor.ts
+│   │       ├── ocr.processor.ts
+│   │       ├── tesseract.processor.ts   # Imagens
+│   │       └── textract.processor.ts    # PDFs
 │   ├── llm/
 │   │   ├── llm.module.ts
 │   │   ├── llm.controller.ts
@@ -124,6 +148,7 @@ src/
     ├── database.config.ts
     ├── jwt.config.ts
     ├── storage.config.ts
+    ├── textract.config.ts
     └── llm.config.ts
 ```
 
@@ -312,7 +337,7 @@ src/
 3. Upload para S3 (`{env}/documents/{userId}/{documentId}.{ext}`)
 4. Gerar thumbnail se for imagem (Sharp)
 5. Criar registro no DB (status: PROCESSING)
-6. Processar OCR em background
+6. Processar OCR em background (Tesseract para imagens, Textract para PDFs)
 7. Retornar resposta imediata
 
 ---
@@ -328,6 +353,7 @@ src/
   uploadedAt: string;
   fileUrl: string;             // Signed URL (1h)
   extractedText: string;
+  ocrMethod: 'TESSERACT' | 'TEXTRACT';  // Método usado
   status: 'PROCESSING' | 'COMPLETED' | 'ERROR';
   errorMessage?: string;
   llmInteractions: Array<{
@@ -512,11 +538,23 @@ src/
 
 ---
 
-## 8. OCR Processing
+## 8. OCR Processing - Estratégia Dual
 
-### 8.1 Tesseract.js
+### 8.1 Decisão de Roteamento
 
-**Escolha**: Open-source, gratuito, qualidade adequada para POC
+O sistema utiliza **duas engines OCR diferentes** para demonstrar tradeoffs entre custo e qualidade:
+
+```typescript
+if (fileType === 'image/png' || fileType === 'image/jpeg') {
+  return tesseractProcessor.process(file);  // Gratuito
+} else if (fileType === 'application/pdf') {
+  return textractProcessor.process(file);   // Pago, alta qualidade
+}
+```
+
+### 8.2 Tesseract.js (Imagens)
+
+**Uso**: Arquivos PNG/JPG
 
 **Configuração**:
 ```typescript
@@ -527,22 +565,48 @@ src/
 }
 ```
 
-### 8.2 Processamento
-
-**Fluxo**:
-1. Download arquivo do S3
-2. Converter PDF para imagens se necessário (pdf-poppler)
-3. Processar com Tesseract
-4. Concatenar texto de múltiplas páginas
-5. Atualizar `Document`:
-   - `status = 'COMPLETED'`
+**Processamento**:
+1. Download imagem do S3
+2. Processar com Tesseract
+3. Atualizar `Document`:
+   - `ocrMethod = 'TESSERACT'`
    - `extractedText = result`
-   - `ocrCompletedAt = now()`
-6. Em caso de erro:
-   - `status = 'ERROR'`
-   - `errorMessage = error.message`
+   - `status = 'COMPLETED'`
 
-**Modo**: Background (fire-and-forget) sem blocking
+### 8.3 AWS Textract (PDFs)
+
+**Uso**: Arquivos PDF
+
+**Modelo**: `DetectDocumentText` API
+
+**Processamento**:
+1. PDF já está no S3 (via upload)
+2. Chamar Textract com S3 URI
+3. Processar resposta (blocos de texto)
+4. Concatenar texto preservando layout
+5. Atualizar `Document`:
+   - `ocrMethod = 'TEXTRACT'`
+   - `extractedText = result`
+   - `status = 'COMPLETED'`
+
+**Biblioteca**: `@aws-sdk/client-textract`
+
+### 8.4 Comparativo OCR
+
+| Critério | Tesseract (Imagens) | Textract (PDFs) |
+|----------|---------------------|-----------------|
+| **Custo** | Gratuito | ~US$ 1,50/1.000 páginas |
+| **Qualidade** | ⭐⭐⭐ Boa | ⭐⭐⭐⭐⭐ Excelente |
+| **Tabelas/Forms** | ❌ Não detecta | ✅ Detecta estruturas |
+| **Latência** | ~2-5s | ~3-8s |
+| **Free Tier** | Ilimitado | 1.000 páginas/mês (3 meses) |
+| **Caso de Uso** | Imagens simples | Documentos complexos |
+
+**Custo Estimado** (1.000 documentos PDF/mês):
+- Tesseract: R$ 0
+- Textract: ~R$ 7,50/mês
+
+**Justificativa**: Sistema mantém ambas soluções para demonstrar análise de tradeoffs e diferentes abordagens técnicas.
 
 ---
 
@@ -626,7 +690,9 @@ server {
   status: 'ok',
   timestamp: '2024-01-15T10:30:00.000Z',
   database: 'connected',
-  storage: 'accessible'
+  storage: 'accessible',
+  textract: 'available',
+  bedrock: 'available'
 }
 ```
 
@@ -673,6 +739,7 @@ MAX_FILE_SIZE_MB=10
 ✅ Single instance NestJS  
 ✅ In-memory rate limiting  
 ✅ Background OCR processing (sync)  
+✅ Dual OCR strategy (Tesseract + Textract)  
 ✅ Nginx básico  
 ✅ Logs stdout  
 ✅ Cookie-based auth  
@@ -714,15 +781,17 @@ MAX_FILE_SIZE_MB=10
 
 **POC (Free Tier EC2)**:
 - S3 (5GB + 1k requests): ~$0.15/mês
+- Textract (1k páginas/mês - free tier): $0
 - Bedrock (10k perguntas): ~$0.50/mês
 - **Total**: ~$0.65/mês
 
-**Produção (100 usuários ativos)**:
+**Produção (100 usuários ativos, 1.000 PDFs/mês)**:
 - EC2 t3.small: ~$15/mês
 - RDS t3.micro: ~$15/mês
 - S3 + transfers: ~$5/mês
+- Textract (após free tier): ~$1.50/mês
 - Bedrock: ~$20/mês
-- **Total**: ~$55/mês
+- **Total**: ~$56.50/mês
 
 ---
 

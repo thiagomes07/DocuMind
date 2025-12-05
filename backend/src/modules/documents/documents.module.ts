@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DocumentsController } from './documents.controller';
 import { DocumentsService } from './documents.service';
 import { OcrProcessor } from './processors/ocr.processor';
+import { TextractProcessor } from './processors/textract.processor';
 import { StorageModule } from '../storage/storage.module';
 import { UsersModule } from '../users/users.module';
 
@@ -18,6 +19,7 @@ import { UsersModule } from '../users/users.module';
   providers: [
     DocumentsService,
     OcrProcessor,
+    TextractProcessor,
   ],
   exports: [DocumentsService], // Export for LLM module
 })

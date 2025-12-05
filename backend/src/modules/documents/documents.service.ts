@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { UsersService } from '../users/users.service';
 import { OcrProcessor } from './processors/ocr.processor';
+import { TextractProcessor } from './processors/textract.processor';
 import { Document, DocumentStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import PDFDocument from 'pdfkit';
@@ -23,6 +24,7 @@ export class DocumentsService {
     private storage: StorageService,
     private users: UsersService,
     private ocrProcessor: OcrProcessor,
+    private textractProcessor: TextractProcessor,
     private config: ConfigService,
   ) {}
 
@@ -87,7 +89,7 @@ export class DocumentsService {
       await this.users.incrementDocumentCount(userId);
 
       // Start OCR processing asynchronously (fire-and-forget)
-      this.processOcrAsync(documentId, userId, file.buffer, file.mimetype);
+      this.processOcrAsync(documentId, userId, s3Key, file.mimetype);
 
       this.logger.log(`✅ Document created: ${documentId}`);
 
@@ -356,7 +358,7 @@ export class DocumentsService {
   private processOcrAsync(
     documentId: string,
     userId: string,
-    fileBuffer: Buffer,
+    s3Key: string,
     mimeType: string,
   ): void {
     // Execute in background without blocking
@@ -367,19 +369,22 @@ export class DocumentsService {
         let extractedText: string;
 
         if (this.storage.isImage(mimeType)) {
-          // Process image directly
+          // Process image with Tesseract - need to download from S3 first
+          const fileBuffer = await this.storage.downloadFile(s3Key);
           extractedText = await this.ocrProcessor.processImage(fileBuffer);
         } else if (this.storage.isPdf(mimeType)) {
-          // For PDF, we'd need to convert to images first
-          // For POC, we'll just indicate PDF text extraction is not implemented
-          extractedText =
-            '[PDF] Extração de texto de PDF não implementada nesta versão. Use imagens PNG ou JPG.';
+          // Process PDF with AWS Textract - uses S3 directly
+          extractedText = await this.textractProcessor.processPdf(s3Key);
         } else {
           throw new Error('Tipo de arquivo não suportado para OCR');
         }
 
         // Validate extraction
-        if (!this.ocrProcessor.isValidExtraction(extractedText)) {
+        const isValid = this.storage.isPdf(mimeType)
+          ? this.textractProcessor.isValidExtraction(extractedText)
+          : this.ocrProcessor.isValidExtraction(extractedText);
+
+        if (!isValid) {
           this.logger.warn(
             `OCR extraction might be invalid for: ${documentId}`,
           );
@@ -395,9 +400,13 @@ export class DocumentsService {
           },
         });
 
-        const stats = this.ocrProcessor.getStatistics(extractedText);
+        const stats = this.storage.isPdf(mimeType)
+          ? this.textractProcessor.getStatistics(extractedText)
+          : this.ocrProcessor.getStatistics(extractedText);
+
+        const processor = this.storage.isPdf(mimeType) ? 'Textract' : 'Tesseract';
         this.logger.log(
-          `✅ OCR completed for ${documentId}: ${stats.words} words, ${stats.lines} lines`,
+          `✅ OCR completed for ${documentId} (${processor}): ${stats.words} words, ${stats.lines} lines`,
         );
       } catch (error) {
         this.logger.error(`❌ OCR failed for ${documentId}:`, error);
