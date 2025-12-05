@@ -13,14 +13,10 @@ import { UsersModule } from '../users/users.module';
 @Module({
   imports: [
     StorageModule, // AWS S3 operations
-    UsersModule,   // User operations and limits
+    UsersModule, // User operations and limits
   ],
   controllers: [DocumentsController],
-  providers: [
-    DocumentsService,
-    OcrProcessor,
-    TextractProcessor,
-  ],
+  providers: [DocumentsService, OcrProcessor, TextractProcessor],
   exports: [DocumentsService], // Export for LLM module
 })
 export class DocumentsModule {}

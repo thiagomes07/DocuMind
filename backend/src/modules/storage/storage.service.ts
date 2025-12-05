@@ -14,6 +14,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import sharp from 'sharp';
+import { pdfToPng } from 'pdf-to-png-converter';
 
 @Injectable()
 export class StorageService {
@@ -146,7 +147,9 @@ export class StorageService {
       const body = response.Body as AsyncIterable<Uint8Array> | undefined;
 
       if (!body) {
-        throw new InternalServerErrorException('Arquivo indisponível para download');
+        throw new InternalServerErrorException(
+          'Arquivo indisponível para download',
+        );
       }
 
       // Convert stream to buffer
@@ -195,13 +198,12 @@ export class StorageService {
     try {
       this.logger.debug(`Generating thumbnail for: ${key}`);
 
-      const thumbnailConfig =
-        this.configService.get('storage.thumbnail') ?? {
-          width: 320,
-          height: 320,
-          fit: 'cover',
-          quality: 80,
-        };
+      const thumbnailConfig = this.configService.get('storage.thumbnail') ?? {
+        width: 320,
+        height: 320,
+        fit: 'cover',
+        quality: 80,
+      };
 
       // Resize image using sharp
       const thumbnailBuffer = await sharp(imageBuffer)
@@ -225,6 +227,66 @@ export class StorageService {
   }
 
   /**
+   * Generate thumbnail for PDF (first page)
+   */
+  async generatePdfThumbnail(
+    pdfBuffer: Buffer,
+    key: string,
+  ): Promise<string | null> {
+    try {
+      this.logger.debug(`Generating PDF thumbnail for: ${key}`);
+
+      const thumbnailConfig = this.configService.get('storage.thumbnail') ?? {
+        width: 320,
+        height: 320,
+        fit: 'cover',
+        quality: 80,
+      };
+
+      // Convert first page of PDF to PNG
+      // pdf-to-png-converter accepts Buffer or ArrayBuffer
+      const pngPages = await pdfToPng(pdfBuffer.buffer as ArrayBuffer, {
+        viewportScale: 2.0,
+        pagesToProcess: [1], // Only first page
+        verbosityLevel: 0,
+      });
+
+      if (!pngPages || pngPages.length === 0) {
+        throw new Error('Failed to convert PDF page to image');
+      }
+
+      // Get first page buffer - content is already a Buffer or Uint8Array
+      const pageContent = pngPages[0]?.content;
+      if (!pageContent) {
+        throw new Error('PDF page content is empty');
+      }
+
+      const firstPageBuffer = Buffer.isBuffer(pageContent)
+        ? pageContent
+        : Buffer.from(pageContent as Uint8Array);
+
+      // Resize to thumbnail size
+      const thumbnailBuffer = await sharp(firstPageBuffer)
+        .resize(thumbnailConfig.width, thumbnailConfig.height, {
+          fit: thumbnailConfig.fit,
+          position: 'center',
+        })
+        .jpeg({ quality: thumbnailConfig.quality })
+        .toBuffer();
+
+      // Upload thumbnail
+      await this.uploadFile(key, thumbnailBuffer, 'image/jpeg');
+
+      this.logger.log(`✅ PDF thumbnail generated: ${key}`);
+      return key;
+    } catch (error) {
+      this.logger.error(`Failed to generate PDF thumbnail: ${key}`, error);
+      // Don't throw - thumbnail generation is not critical
+      return null;
+    }
+  }
+
+  /**
    * Build S3 key for document
    */
   buildDocumentKey(
@@ -233,7 +295,8 @@ export class StorageService {
     extension: string,
   ): string {
     const keyPatterns =
-      this.configService.get('storage.keyPatterns') ?? this.defaultKeyPatterns();
+      this.configService.get('storage.keyPatterns') ??
+      this.defaultKeyPatterns();
     return keyPatterns.document(userId, documentId, extension);
   }
 
@@ -242,7 +305,8 @@ export class StorageService {
    */
   buildThumbnailKey(userId: string, documentId: string): string {
     const keyPatterns =
-      this.configService.get('storage.keyPatterns') ?? this.defaultKeyPatterns();
+      this.configService.get('storage.keyPatterns') ??
+      this.defaultKeyPatterns();
     return keyPatterns.thumbnail(userId, documentId);
   }
 

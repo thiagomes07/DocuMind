@@ -40,17 +40,17 @@ import { configModules } from './config';
       {
         name: 'default',
         ttl: 60000, // 1 minute in milliseconds
-        limit: 30,  // 30 requests per minute (default)
+        limit: 300, // 300 requests per minute (default) - 5 req/s
       },
       {
         name: 'upload',
         ttl: 600000, // 10 minutes
-        limit: 3,    // 3 uploads per 10 minutes
+        limit: 10, // 10 uploads per 10 minutes
       },
       {
         name: 'llm',
         ttl: 60000, // 1 minute
-        limit: 10,  // 10 LLM requests per minute
+        limit: 30, // 30 LLM requests per minute
       },
     ]),
 

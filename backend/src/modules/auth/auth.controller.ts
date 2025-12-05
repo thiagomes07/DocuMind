@@ -22,10 +22,7 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto, RegisterResponseDto } from './dto/register.dto';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
-import {
-  RefreshResponseDto,
-  LogoutResponseDto,
-} from './dto/tokens.dto';
+import { RefreshResponseDto, LogoutResponseDto } from './dto/tokens.dto';
 import { SessionDto } from '../users/dto/user.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -47,7 +44,7 @@ export class AuthController {
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 5, ttl: 600000 } }) // 5 requests per 10 minutes
+  @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 requests per 10 minutes
   @ApiOperation({
     summary: 'Register new user',
     description: 'Create a new user account with email and password',
@@ -83,7 +80,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 5, ttl: 600000 } }) // 5 requests per 10 minutes
+  @Throttle({ default: { limit: 15, ttl: 600000 } }) // 15 requests per 10 minutes
   @ApiOperation({
     summary: 'Login user',
     description: 'Authenticate user and set JWT cookies',
@@ -123,7 +120,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(RefreshAuthGuard)
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @Throttle({ default: { limit: 60, ttl: 60000 } }) // 60 requests per minute
   @ApiCookieAuth('refresh_token')
   @ApiOperation({
     summary: 'Refresh access token',

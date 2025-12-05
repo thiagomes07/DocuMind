@@ -52,7 +52,7 @@ export class DocumentsController {
 
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 3, ttl: 600000 } }) // 3 uploads per 10 minutes
+  @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 uploads per 10 minutes
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
@@ -109,9 +109,7 @@ export class DocumentsController {
       throw new BadRequestException('Nenhum arquivo enviado');
     }
 
-    this.logger.log(
-      `📤 Upload request: ${file.originalname} (${userId})`,
-    );
+    this.logger.log(`📤 Upload request: ${file.originalname} (${userId})`);
 
     const document = await this.documentsService.create(userId, file);
 
@@ -166,6 +164,7 @@ export class DocumentsController {
   // ==================== GET DOCUMENT DETAILS ====================
 
   @Get(':id')
+  @Throttle({ default: { limit: 600, ttl: 60000 } }) // 600 requests per minute for document viewing
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get document details',
@@ -215,7 +214,7 @@ export class DocumentsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 deletes per minute
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 deletes per minute
   @ApiOperation({
     summary: 'Delete document',
     description: 'Delete document from storage and database',

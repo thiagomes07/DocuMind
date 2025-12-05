@@ -36,7 +36,7 @@ export class LlmController {
   @Post('ask')
   @HttpCode(HttpStatus.OK)
   @UseGuards(TokenLimitGuard)
-  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 questions per minute
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 questions per minute
   @ApiOperation({
     summary: 'Ask question about document',
     description:

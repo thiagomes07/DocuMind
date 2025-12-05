@@ -31,10 +31,7 @@ export class DocumentsService {
   /**
    * Create and upload new document
    */
-  async create(
-    userId: string,
-    file: Express.Multer.File,
-  ): Promise<Document> {
+  async create(userId: string, file: Express.Multer.File): Promise<Document> {
     this.logger.log(`📤 Upload started: ${file.originalname} (${userId})`);
 
     // Check document limit
@@ -61,10 +58,16 @@ export class DocumentsService {
       // Upload file to S3
       await this.storage.uploadFile(s3Key, file.buffer, file.mimetype);
 
-      // Generate thumbnail if image
+      // Generate thumbnail based on file type
       if (this.storage.isImage(file.mimetype)) {
         const thumbKey = this.storage.buildThumbnailKey(userId, documentId);
         thumbnailKey = await this.storage.generateThumbnail(
+          file.buffer,
+          thumbKey,
+        );
+      } else if (this.storage.isPdf(file.mimetype)) {
+        const thumbKey = this.storage.buildThumbnailKey(userId, documentId);
+        thumbnailKey = await this.storage.generatePdfThumbnail(
           file.buffer,
           thumbKey,
         );
@@ -276,7 +279,9 @@ export class DocumentsService {
       // Document info
       doc.fontSize(10).font('Helvetica');
       doc.text(`Arquivo: ${document.originalName}`);
-      doc.text(`Data: ${new Date(document.uploadedAt).toLocaleString('pt-BR')}`);
+      doc.text(
+        `Data: ${new Date(document.uploadedAt).toLocaleString('pt-BR')}`,
+      );
       doc.text(`Status: ${document.status}`);
 
       doc.moveDown(2);
@@ -404,7 +409,9 @@ export class DocumentsService {
           ? this.textractProcessor.getStatistics(extractedText)
           : this.ocrProcessor.getStatistics(extractedText);
 
-        const processor = this.storage.isPdf(mimeType) ? 'Textract' : 'Tesseract';
+        const processor = this.storage.isPdf(mimeType)
+          ? 'Textract'
+          : 'Tesseract';
         this.logger.log(
           `✅ OCR completed for ${documentId} (${processor}): ${stats.words} words, ${stats.lines} lines`,
         );
@@ -429,12 +436,9 @@ export class DocumentsService {
   private validateFile(file: Express.Multer.File): void {
     const maxSize =
       this.config.get<number>('storage.maxFileSize') ?? 10 * 1024 * 1024;
-    const allowedTypes =
-      this.config.get<string[]>('storage.allowedMimeTypes') ?? [
-        'image/png',
-        'image/jpeg',
-        'application/pdf',
-      ];
+    const allowedTypes = this.config.get<string[]>(
+      'storage.allowedMimeTypes',
+    ) ?? ['image/png', 'image/jpeg', 'application/pdf'];
 
     // Check file size
     if (file.size > maxSize) {
