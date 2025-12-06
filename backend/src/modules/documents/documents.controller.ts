@@ -165,7 +165,7 @@ export class DocumentsController {
   // ==================== GET DOCUMENT DETAILS ====================
 
   @Get(':id')
-  @Throttle({ default: { limit: 600, ttl: 60000 } }) // 600 requests per minute for document viewing
+  @Throttle({ default: { limit: 1200, ttl: 60000 } }) // 1200 requests per minute (supports polling + normal viewing)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get document details',

@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { DocumentListItem } from '@/types/document';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/contexts/toast-context';
-import { deleteDocumentAction } from '@/lib/actions/documents';
-import { formatDate } from '@/lib/utils';
+import { useState } from "react";
+import Link from "next/link";
+import { DocumentListItem, DocumentStatus } from "@/types/document";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/contexts/toast-context";
+import { deleteDocumentAction } from "@/lib/actions/documents";
+import { formatDate } from "@/lib/utils";
+import { useDocumentStatusPolling } from "@/hooks/use-document-status-polling";
 import {
   FileText,
   Eye,
@@ -15,8 +16,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Image as ImageIcon,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DocumentCardProps {
   document: DocumentListItem;
@@ -28,6 +30,23 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const toast = useToast();
 
+  // Use polling hook to auto-update status
+  const { status: currentStatus, isPolling } = useDocumentStatusPolling({
+    documentId: document.id,
+    initialStatus: document.status,
+    onStatusChange: (newStatus: DocumentStatus) => {
+      if (newStatus === "COMPLETED") {
+        toast.success("Documento processado com sucesso!");
+        // Trigger parent refresh to update the list
+        onDelete?.();
+      } else if (newStatus === "ERROR") {
+        toast.error("Erro ao processar documento");
+        onDelete?.();
+      }
+    },
+    enabled: true,
+  });
+
   const handleDelete = async () => {
     setIsDeleting(true);
 
@@ -37,11 +56,11 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
       if (result.error) {
         toast.error(result.error.message);
       } else {
-        toast.success('Documento deletado com sucesso!');
+        toast.success("Documento deletado com sucesso!");
         onDelete?.();
       }
     } catch (error) {
-      toast.error('Erro ao deletar documento');
+      toast.error("Erro ao deletar documento");
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
@@ -51,27 +70,27 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
   const statusConfig = {
     PROCESSING: {
       icon: Clock,
-      label: 'Processando',
-      color: 'text-[var(--warning-500)]',
-      border: 'border-[var(--warning-500)]',
+      label: "Processando",
+      color: "text-[var(--warning-500)]",
+      border: "border-[var(--warning-500)]",
     },
     COMPLETED: {
       icon: CheckCircle2,
-      label: 'Concluido',
-      color: 'text-[var(--success-500)]',
-      border: 'border-[var(--success-500)]',
+      label: "Concluido",
+      color: "text-[var(--success-500)]",
+      border: "border-[var(--success-500)]",
     },
     ERROR: {
       icon: AlertCircle,
-      label: 'Erro',
-      color: 'text-[var(--error-500)]',
-      border: 'border-[var(--error-500)]',
+      label: "Erro",
+      color: "text-[var(--error-500)]",
+      border: "border-[var(--error-500)]",
     },
   };
 
-  const status = statusConfig[document.status];
+  const status = statusConfig[currentStatus];
   const StatusIcon = status.icon;
-  const isProcessing = document.status === 'PROCESSING';
+  const isProcessing = currentStatus === "PROCESSING";
 
   return (
     <div className="group relative rounded-xl border border-[var(--border-color)] bg-white shadow-sm hover:shadow-md transition-all duration-200">
@@ -85,7 +104,7 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            {document.filename.toLowerCase().endsWith('.pdf') ? (
+            {document.filename.toLowerCase().endsWith(".pdf") ? (
               <FileText className="h-16 w-16 text-[var(--gray-400)]" />
             ) : (
               <ImageIcon className="h-16 w-16 text-[var(--gray-400)]" />
@@ -96,12 +115,16 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
         {/* Status Badge */}
         <div
           className={cn(
-            'absolute top-3 border-2 bg-black/50 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-bold',
+            "absolute top-3 border-2 bg-black/50 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-bold",
             status.border,
             status.color
           )}
         >
-          <StatusIcon className="h-3.5 w-3.5" />
+          {isPolling ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <StatusIcon className="h-3.5 w-3.5" />
+          )}
           <span>{status.label}</span>
         </div>
       </div>
@@ -128,7 +151,9 @@ export function DocumentCard({ document, onDelete }: DocumentCardProps) {
             className="flex-1"
             onClick={() => {
               if (isProcessing) {
-                toast.info('Documento ainda esta processando, mas ja e possivel visualizar os detalhes disponiveis.');
+                toast.info(
+                  "Documento ainda esta processando, mas ja e possivel visualizar os detalhes disponiveis."
+                );
               }
             }}
           >

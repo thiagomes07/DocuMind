@@ -40,7 +40,7 @@ import { configModules } from './config';
       {
         name: 'default',
         ttl: 60000, // 1 minute in milliseconds
-        limit: 300, // 300 requests per minute (default) - 5 req/s
+        limit: 600, // 600 requests per minute (default) - 10 req/s (supports status polling)
       },
       {
         name: 'upload',

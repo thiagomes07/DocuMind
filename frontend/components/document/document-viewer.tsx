@@ -165,7 +165,6 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
     setInputValue("");
     setIsAsking(true);
 
-    // Add user message immediately
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       type: "user",
@@ -179,10 +178,8 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
 
       if (result.error) {
         toast.error(result.error.message);
-        // Remove user message on error
         setMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
       } else if (result.data) {
-        // Add assistant response
         const assistantMessage: ChatMessage = {
           id: `assistant-${Date.now()}`,
           type: "assistant",
@@ -191,8 +188,6 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
-
-        // Refresh session to update token count
         await refreshSession();
       }
     } catch (error) {
@@ -211,7 +206,6 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
     }
   };
 
-  // Token usage calculation
   const tokensUsed = user?.tokensUsed || 0;
   const tokensLimit = user?.tokensLimit || 10000;
   const tokensPercentage = (tokensUsed / tokensLimit) * 100;
@@ -234,9 +228,14 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
     (isImageDocument || isPdfDocument) && Boolean(document.fileUrl);
 
   return (
-    <div className="h-full flex flex-col">
+    // <-- ALTERAÇÃO IMPORTANTE:
+    // Troquei "h-full" por "h-[calc(100vh-4rem)]".
+    // Isso força o container a ter a altura da viewport menos a altura estimada de um header (~64px/4rem).
+    // Se você tiver margens ou paddings externos, ajuste o 4rem conforme necessário.
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-white">
       {/* Header */}
-      <div className="bg-white border-b border-[var(--border-color)] p-4">
+      {/* Adicionei flex-shrink-0 para garantir que o header nunca encolha */}
+      <div className="bg-white border-b border-[var(--border-color)] p-4 flex-shrink-0">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Button
@@ -295,11 +294,12 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
       </div>
 
       {/* Main Content - Split View */}
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full grid lg:grid-cols-2 gap-6 p-6">
+      {/* Mudei overflow-hidden para garantir que o conteúdo interno não vaze */}
+      <div className="flex-1 overflow-hidden p-6 min-h-0">
+        <div className="h-full grid lg:grid-cols-2 gap-6">
           {/* Left Panel - Extracted Text */}
-          <div className="flex flex-col bg-white rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
+          <div className="flex flex-col bg-white rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden h-full">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)] flex-shrink-0">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-[var(--primary-500)]" />
                 <h2 className="font-semibold text-[var(--gray-900)]">
@@ -321,9 +321,11 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
               </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6">
+            {/* A área rolável já estava correta com flex-1 e min-h-0, mas o container pai precisava de altura fixa */}
+            <div className="flex-1 overflow-y-auto p-6 min-h-0">
               {document.extractedText ? (
-                <pre className="text-sm text-[var(--gray-700)] whitespace-pre-wrap font-sans leading-relaxed">
+                // Adicionei 'break-words' para evitar overflow horizontal que quebre a rolagem vertical
+                <pre className="text-sm text-[var(--gray-700)] whitespace-pre-wrap break-words font-sans leading-relaxed">
                   {document.extractedText}
                 </pre>
               ) : (
@@ -341,8 +343,8 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
           </div>
 
           {/* Right Panel - LLM Chat */}
-          <div className="flex flex-col bg-white rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
+          <div className="flex flex-col bg-white rounded-xl shadow-sm border border-[var(--border-color)] overflow-hidden h-full">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)] flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-[var(--primary-500)]" />
                 <h2 className="font-semibold text-[var(--gray-900)]">
@@ -357,7 +359,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
 
             {/* Token Warning Banner */}
             {isTokenLimitReached && (
-              <div className="bg-[var(--error-500)]/10 border-b border-[var(--error-500)]/20 p-3">
+              <div className="bg-[var(--error-500)]/10 border-b border-[var(--error-500)]/20 p-3 flex-shrink-0">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="h-5 w-5 text-[var(--error-500)] flex-shrink-0 mt-0.5" />
                   <div>
@@ -373,8 +375,8 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
               </div>
             )}
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Messages Area - min-h-0 garante que o flex respeite o espaço disponível */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <div className="w-16 h-16 rounded-full bg-[var(--primary-500)]/10 flex items-center justify-center mb-4">
@@ -430,7 +432,8 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
                             : "bg-[var(--gray-100)] text-[var(--gray-900)]"
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap">
+                        {/* break-words ajuda a não estourar o layout horizontalmente */}
+                        <p className="text-sm whitespace-pre-wrap break-words">
                           {message.content}
                         </p>
                         {message.tokensUsed && (
@@ -454,7 +457,7 @@ export function DocumentViewer({ document, onDelete }: DocumentViewerProps) {
             </div>
 
             {/* Input Area */}
-            <div className="border-t border-[var(--border-color)] p-4">
+            <div className="border-t border-[var(--border-color)] p-4 flex-shrink-0">
               <div className="flex gap-2">
                 <textarea
                   ref={textareaRef}

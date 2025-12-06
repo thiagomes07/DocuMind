@@ -1,7 +1,7 @@
 /**
  * Document status
  */
-export type DocumentStatus = 'PROCESSING' | 'COMPLETED' | 'ERROR';
+export type DocumentStatus = "PROCESSING" | "COMPLETED" | "ERROR";
 
 /**
  * Document list item (summary view)
