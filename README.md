@@ -11,7 +11,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker)](https://www.docker.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=flat&logo=postgresql)](https://www.postgresql.org/)
-[![AWS](https://img.shields.io/badge/AWS-S3_+_Bedrock-FF9900?style=flat&logo=amazonwebservices)](https://aws.amazon.com/)
+[![AWS](https://img.shields.io/badge/AWS-S3,_Bedrock_e_Textract-FF9900?style=flat&logo=amazonwebservices)](https://aws.amazon.com/)
 
 </div>
 
@@ -49,6 +49,36 @@ Além dos requisitos do case, foram implementados:
 
 ---
 
+## 🌐 Acesso ao Sistema
+
+<div align="center">
+
+### 🚀 **Versão em Produção** (Deploy Completo)
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <h3>🖥️ Frontend</h3>
+      <a href="http://52.23.184.215">
+        <img src="https://img.shields.io/badge/Acessar_Aplicação-2D5F2E?style=for-the-badge&logo=react&logoColor=white" alt="Frontend"/>
+      </a>
+    </td>
+    <td align="center" width="50%">
+      <h3>🔧 Backend API</h3>
+      <a href="http://52.23.184.215/api/docs">
+        <img src="https://img.shields.io/badge/Documentação_API-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="API Docs"/>
+      </a>
+    </td>
+  </tr>
+</table>
+</div>
+
+**📍 URLs Diretas:**
+- **Aplicação Web**: http://52.23.184.215
+- **API Backend (Health Check)**: http://52.23.184.215/api/health
+- **API Docs (Swagger)**: http://52.23.184.215/api/docs
+
+
 ## 🚀 Quick Start - Execução Local
 
 ### 📦 Pré-requisitos
@@ -83,11 +113,6 @@ cp frontend/.env.example frontend/.env.local
 Edite o arquivo `.env` na raiz:
 
 ```bash
-# Segurança (⚠️ GERAR VALORES FORTES EM PRODUÇÃO)
-JWT_ACCESS_SECRET=seu-secret-forte-aqui-256bits
-JWT_REFRESH_SECRET=outro-secret-diferente-256bits
-PASSWORD_PEPPER=pepper-global-seguro-256bits
-
 # AWS S3 (obrigatório)
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=sua-chave-aws
@@ -185,7 +210,8 @@ docker compose down -v
 
 External Services:
 ├─ AWS Bedrock Claude 3 Haiku (LLM)
-└─ Tesseract.js (OCR - open source)
+├─ AWS Textract (PDF OCR)
+└─ Tesseract.js (Images OCR - open source)
 ```
 
 ### 🔑 Decisões de Arquitetura
@@ -352,22 +378,6 @@ limit_req zone=api_limit burst=10 nodelay;
 
 ---
 
-## 🧪 Testes
-
-```bash
-# Backend (NestJS + Jest)
-cd backend
-npm run test           # Unit tests
-npm run test:e2e       # Integration tests
-npm run test:cov       # Coverage report
-
-# Frontend (Next.js + Jest)
-cd frontend
-npm run test
-```
-
----
-
 ## 🚧 Roadmap
 
 ### Funcionalidades
@@ -452,7 +462,7 @@ POST   /llm/ask                // Fazer pergunta sobre documento
         <ul style="list-style: none; padding: 0;">
           <li>🎨 <strong>Frontend moderno:</strong> Next.js 14, TypeScript, Tailwind CSS, Server Actions</li>
           <li>🔧 <strong>Backend enterprise:</strong> NestJS, Prisma, PostgreSQL, Guards customizados</li>
-          <li>🤖 <strong>IA/ML:</strong> Integração AWS Bedrock, OCR com Tesseract.js</li>
+          <li>🤖 <strong>IA/ML:</strong> Integração AWS Bedrock e Textract, OCR com Tesseract.js</li>
           <li>🐋 <strong>DevOps:</strong> Docker Compose, Nginx, Load Balancing, Health Checks</li>
           <li>🔐 <strong>Segurança:</strong> Argon2id, JWT, Rate Limiting, HTTP-only Cookies</li>
           <li>☁️ <strong>Cloud:</strong> AWS (S3, Bedrock, EC2 ready)</li>
